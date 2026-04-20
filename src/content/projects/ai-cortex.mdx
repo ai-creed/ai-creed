@@ -1,0 +1,28 @@
+---
+name: "ai-cortex"
+tagline: "project rehydration engine — fast cached knowledge for ai agents"
+status: "public"
+order: 2
+repo: "https://github.com/TODO/ai-cortex"
+install: "npm i -g ai-cortex"
+features:
+  - "fast, cached project knowledge for new agent sessions"
+  - "tree-sitter indexing with call-graph analysis"
+  - "mcp server, cli, and library surface"
+  - "no repository writes — local-only cache"
+---
+
+## what it does
+
+ai-cortex gives fresh agent sessions consistent, fast knowledge about a project without re-scanning the repo each time. It indexes code with tree-sitter, builds a trigram + call-graph cache, and exposes the result through a CLI, a library, and an MCP server.
+
+## why
+
+New agent sessions start cold. Without cortex, they either re-scan (slow, expensive) or skip exploration (lossy). Cortex is the small local service that keeps the knowledge layer warm.
+
+## usage
+
+```bash
+cortex scan ./my-project
+cortex query "where is auth handled?"
+```
