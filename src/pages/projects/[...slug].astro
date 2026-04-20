@@ -1,0 +1,138 @@
+---
+import Base from "~/layouts/Base.astro";
+import StatusChip from "~/components/StatusChip.astro";
+import CodeBlock from "~/components/CodeBlock.astro";
+import { getCollection, render } from "astro:content";
+import { SITE_CONTACT_EMAIL } from "~/consts";
+
+export async function getStaticPaths() {
+	const projects = await getCollection("projects");
+	return projects.map((p) => ({
+		params: { slug: p.id },
+		props: { project: p },
+	}));
+}
+
+const { project } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+
+const isVideo = data.gif?.match(/\.(mp4|webm)$/);
+const repoHost = data.repo
+	? new URL(data.repo).host + new URL(data.repo).pathname
+	: "";
+---
+<Base title={`${data.name} — ai-creed`} description={data.tagline}>
+	<article class="container">
+		<p class="back">
+			<a href="/#projects">← projects</a>
+		</p>
+
+		<header class="head">
+			<div class="title-row">
+				<h1 class="name">{data.name}</h1>
+				<StatusChip status={data.status} />
+			</div>
+			<p class="tagline subtitle">{data.tagline}</p>
+		</header>
+
+		{data.gif && (
+			<div class="demo">
+				{isVideo ? (
+					<video src={data.gif} autoplay muted loop playsinline />
+				) : (
+					<img src={data.gif} alt={`${data.name} demo`} />
+				)}
+			</div>
+		)}
+
+		<section class="body">
+			<Content />
+		</section>
+
+		<section class="features">
+			<h2># features</h2>
+			<ul>
+				{data.features.map((f) => <li>{f}</li>)}
+			</ul>
+		</section>
+
+		{data.status === "public" && data.install && (
+			<section class="install">
+				<h2># install</h2>
+				<CodeBlock code={data.install} lang="bash" />
+			</section>
+		)}
+
+		<footer class="cta">
+			{data.status === "public" && data.repo ? (
+				<p>
+					repo: <a href={data.repo}>{repoHost}</a> →
+				</p>
+			) : (
+				<p class="subtitle">
+					private — contact for access:
+					<a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
+				</p>
+			)}
+		</footer>
+	</article>
+</Base>
+
+<style>
+	.back {
+		margin: 0 0 var(--s-4);
+		font-size: var(--fs-sm);
+		color: var(--fg-dim);
+	}
+	.head { margin-bottom: var(--s-6); }
+	.title-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--s-4);
+	}
+	.name { font-size: var(--fs-h1); font-weight: 600; }
+	.tagline { margin-top: var(--s-2); }
+
+	.demo {
+		margin: var(--s-6) 0;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+	.demo img, .demo video {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	.body :global(h2),
+	.features h2,
+	.install h2 {
+		color: var(--fg-dim);
+		font-weight: 500;
+		font-size: var(--fs-h3);
+		margin-top: var(--s-8);
+		margin-bottom: var(--s-3);
+	}
+
+	.body :global(p) { margin-bottom: var(--s-3); }
+	.body :global(pre) { margin: var(--s-3) 0; }
+
+	.features ul {
+		list-style: none;
+		padding-left: 0;
+	}
+	.features li::before {
+		content: "- ";
+		color: var(--accent);
+	}
+
+	.cta {
+		margin-top: var(--s-8);
+		padding-top: var(--s-4);
+		border-top: 1px solid var(--border);
+		font-size: var(--fs-sm);
+	}
+</style>
