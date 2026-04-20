@@ -1,0 +1,47 @@
+---
+---
+<header class="site-header">
+	<div class="container row">
+		<a class="brand" href="/">
+			<span class="dot">●</span>
+			<span>ai-creed</span>
+		</a>
+		<nav class="links">
+			<a href="/#projects">projects</a>
+			<span class="sep">·</span>
+			<a href="/#about">about</a>
+		</nav>
+	</div>
+</header>
+
+<style>
+	.site-header {
+		border-bottom: 1px solid var(--border);
+		padding: var(--s-3) 0;
+		font-size: var(--fs-sm);
+	}
+	.row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--s-4);
+	}
+	.brand {
+		display: inline-flex;
+		gap: var(--s-2);
+		align-items: center;
+		border: none;
+		color: var(--fg);
+	}
+	.brand:hover { color: var(--accent); }
+	.dot { color: var(--accent); }
+	.links {
+		display: inline-flex;
+		gap: var(--s-2);
+		align-items: center;
+		color: var(--fg-dim);
+	}
+	.links a { border: none; color: var(--fg-dim); }
+	.links a:hover { color: var(--accent); }
+	.sep { opacity: 0.5; }
+</style>
