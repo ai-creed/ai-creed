@@ -1,0 +1,21 @@
+---
+name: "ai-pref-nsync"
+tagline: "git-backed personal preferences for ai coding assistants"
+status: "public"
+order: 3
+repo: "https://github.com/TODO/ai-pref-nsync"
+install: "npm i -g ai-pref-nsync"
+features:
+  - "one canonical preference store, versioned in git"
+  - "shared profiles with local per-machine overrides"
+  - "CLAUDE.md / codex config sync across machines"
+  - "no cloud — the store is your git remote"
+---
+
+## what it does
+
+ai-pref-nsync is a git-backed personal preferences system for AI coding assistants. It keeps CLAUDE.md, Codex config, and similar agent instructions in one versioned store so the same preferences follow you to every machine — with clean per-machine overrides when you need them.
+
+## why
+
+Every AI assistant wants its own config file. Without a shared store, preferences drift across machines and get out of sync. pref-nsync makes the store a first-class thing: one remote, one format, one command to sync.
