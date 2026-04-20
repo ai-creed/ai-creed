@@ -92,7 +92,7 @@ pre {
 
 .subtitle { color: var(--fg-dim); }
 
-.section { margin: var(--s-8) 0; }
+.section { margin-top: var(--s-8); margin-bottom: var(--s-8); }
 
 hr {
 	border: none;
