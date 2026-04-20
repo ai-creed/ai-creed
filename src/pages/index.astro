@@ -1,8 +1,74 @@
 ---
 import Base from "~/layouts/Base.astro";
+import PromptTitle from "~/components/PromptTitle.astro";
+import ProjectCard from "~/components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+import { SITE_GITHUB_URL, SITE_CONTACT_EMAIL } from "~/consts";
+
+const projects = (await getCollection("projects")).sort(
+	(a, b) => a.data.order - b.data.order,
+);
 ---
-<Base title="ai-creed">
-	<div class="container">
-		<p>layout smoke-test ok</p>
-	</div>
+<Base title="ai-creed — local-first ai dev tooling">
+	<section class="hero container">
+		<PromptTitle text="local-first ai dev tooling" />
+		<p class="blurb subtitle">
+			five tools. one philosophy. built for agents that live on your machine.
+		</p>
+	</section>
+
+	<section id="projects" class="container section">
+		<h2 class="heading"># projects</h2>
+		<div class="grid">
+			{projects.map((p) => (
+				<ProjectCard
+					slug={p.id}
+					name={p.data.name}
+					tagline={p.data.tagline}
+					status={p.data.status}
+				/>
+			))}
+		</div>
+	</section>
+
+	<section id="about" class="container section">
+		<h2 class="heading"># about</h2>
+		<p>
+			ai-creed is a small family of local-first AI developer tools. The agent is a
+			tool, not the product. Everything here favors terseness, ownership of your
+			own workstation, and code you can read end-to-end.
+		</p>
+		<p class="subtitle credit">
+			built and maintained by contributors —
+			<a href={SITE_GITHUB_URL}>github</a>
+			·
+			<a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
+		</p>
+	</section>
 </Base>
+
+<style>
+	.hero {
+		padding-top: var(--s-4);
+		padding-bottom: var(--s-8);
+	}
+	.blurb {
+		margin-top: var(--s-3);
+		max-width: 560px;
+	}
+	.heading {
+		color: var(--fg-dim);
+		font-weight: 500;
+		margin-bottom: var(--s-4);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--s-3);
+	}
+	.credit { margin-top: var(--s-3); font-size: var(--fs-sm); }
+
+	@media (max-width: 640px) {
+		.grid { grid-template-columns: 1fr; }
+	}
+</style>
