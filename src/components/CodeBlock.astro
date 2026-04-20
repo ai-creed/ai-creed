@@ -1,0 +1,14 @@
+---
+interface Props {
+	code: string;
+	lang?: string;
+}
+const { code, lang = "bash" } = Astro.props;
+---
+<pre data-lang={lang}><code>{code}</code></pre>
+
+<style>
+	pre {
+		margin: 0;
+	}
+</style>

@@ -1,0 +1,21 @@
+---
+interface Props {
+	status: "public" | "private";
+}
+const { status } = Astro.props;
+const label = status === "public" ? "public" : "private";
+---
+<span class:list={["chip", status]}>[{label}]</span>
+
+<style>
+	.chip {
+		display: inline-block;
+		font-size: var(--fs-xs);
+		padding: 2px var(--s-2);
+		border-radius: var(--radius);
+		border: 1px solid var(--border);
+		line-height: 1.2;
+	}
+	.chip.public { color: var(--accent); border-color: var(--accent); }
+	.chip.private { color: var(--warn); border-color: var(--warn); }
+</style>

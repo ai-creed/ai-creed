@@ -1,0 +1,22 @@
+---
+interface Props {
+	text: string;
+	level?: 1 | 2 | 3;
+}
+const { text, level = 1 } = Astro.props;
+const Tag = `h${level}` as "h1" | "h2" | "h3";
+---
+<Tag class="prompt">
+	<span class="prefix">$</span>
+	<span class="text">{text}</span>
+</Tag>
+
+<style>
+	.prompt {
+		display: flex;
+		gap: var(--s-3);
+		align-items: baseline;
+	}
+	.prefix { color: var(--accent); }
+	.text { color: var(--fg); }
+</style>

@@ -1,0 +1,51 @@
+---
+import StatusChip from "~/components/StatusChip.astro";
+
+interface Props {
+	slug: string;
+	name: string;
+	tagline: string;
+	status: "public" | "private";
+}
+const { slug, name, tagline, status } = Astro.props;
+---
+<a class="card" href={`/projects/${slug}`}>
+	<div class="top">
+		<span class="name">{name}</span>
+		<StatusChip status={status} />
+	</div>
+	<p class="tagline">{tagline}</p>
+	<span class="arrow" aria-hidden="true">→</span>
+</a>
+
+<style>
+	.card {
+		display: block;
+		position: relative;
+		padding: var(--s-4);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--bg-raised);
+		color: var(--fg);
+		text-decoration: none;
+		transition: border-color var(--dur) ease;
+	}
+	.card:hover { border-color: var(--accent); }
+	.card:hover .arrow { color: var(--accent); }
+	.top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--s-3);
+		margin-bottom: var(--s-2);
+	}
+	.name { font-size: var(--fs-base); font-weight: 600; }
+	.tagline { color: var(--fg-dim); font-size: var(--fs-sm); }
+	.arrow {
+		position: absolute;
+		right: var(--s-4);
+		bottom: var(--s-3);
+		color: var(--fg-muted);
+		transition: color var(--dur) ease;
+	}
+</style>
