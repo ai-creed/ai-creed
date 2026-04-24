@@ -1,21 +1,55 @@
 ---
 name: "ai-14all"
-tagline: "terminal-first electron workspace for git worktrees"
-status: "public"
+tagline: "terminal-first shell for ai coding agents, session-per-worktree"
+status: "stable"
 order: 1
-repo: "https://github.com/TODO/ai-14all"
-install: "npm i -g ai-14all"
+repo: "https://github.com/ai-creed/ai-14all"
+install: |
+  git clone git@github.com:ai-creed/ai-14all.git
+  cd ai-14all
+  pnpm install
+  pnpm dev
 features:
-  - "embedded shell sessions per worktree"
-  - "monaco-powered code inspection"
-  - "lightweight git review without turning into an ide"
-  - "keeps worktrees, shells, and review in one place"
+  - "git worktree session flow — one active worktree, fast switching"
+  - "embedded pty terminals per worktree (node-pty + xterm)"
+  - "monaco-powered read-only file view and lightweight diff review"
+  - "multi-workspace fast switching with persisted restore"
+  - "keyboard shortcut registry with grouped help dialog"
+screenshot: "./ai-14all.png"
 ---
+
+> Beta (`v0.1.0-beta.14`) — macOS Apple Silicon only, unsigned build. Right-click-Open on first launch to clear Gatekeeper.
 
 ## what it does
 
-ai-14all keeps the active worktree, shell sessions, code inspection, and lightweight git review in one place without turning into a full IDE. It is a small desktop app for engineers who live in the terminal but want faster context-switching across parallel work branches.
+ai-14all is a terminal-first Electron shell for AI coding agents. It keeps the active worktree, shell sessions, code inspection, and lightweight git review in one window without turning into a full IDE.
 
 ## why
 
-Worktree flows mean juggling multiple shells, editors, and review tabs. 14all collapses that into one window — one shell per worktree, one click to review, no ceremony.
+Agent-assisted work spreads across parallel worktrees. Juggling multiple shells, editors, and review tabs breaks flow. 14all collapses that into one window — one shell stack per worktree, one click to review, no ceremony.
+
+## Download
+
+Latest stable release: **v0.1.0** — [ai-14all-0.1.0-arm64.dmg](https://downloads.ai-creed.dev/ai-14all/0.1.0/ai-14all-0.1.0-arm64.dmg)
+
+Requirements: macOS on Apple Silicon (arm64). The build is unsigned; see the README on GitHub for the Gatekeeper workaround.
+
+- [GitHub repository](https://github.com/ai-creed/ai-14all)
+- [Changelog](https://github.com/ai-creed/ai-14all/blob/master/CHANGELOG.md)
+- [Known issues](https://github.com/ai-creed/ai-14all/blob/master/KNOWN-ISSUES.md)
+
+## build from source
+
+See the install block above — `pnpm dev` launches the app against the current checkout.
+
+## requirements
+
+- macOS on Apple Silicon (arm64)
+- Node ≥ 20, pnpm, git
+- a local git repository with worktrees to drive the session flow
+
+## known limits
+
+- unsigned build — Gatekeeper workaround required on first launch
+- macOS / Apple Silicon only for now (no Intel, Windows, or Linux artifacts)
+- no in-app auto-install; future versions will notify via a banner and hand off to the browser

@@ -7,16 +7,17 @@ const projects = defineCollection({
 		base: "./src/content/projects",
 		pattern: "**/*.{md,mdx}",
 	}),
-	schema: z
+	schema: ({ image }) => z
 		.object({
 			name: z.string(),
 			tagline: z.string(),
-			status: z.enum(["public", "private"]),
+			status: z.enum(["public", "private", "stable"]),
 			order: z.number(),
 			repo: z.string().optional(),
 			install: z.string().optional(),
 			features: z.array(z.string()).min(3).max(6),
-			gif: z.string().optional(),
+			screenshot: image().optional(),
+			video: z.string().optional(),
 		})
 		.superRefine((val, ctx) => {
 			if (val.status === "public") {
