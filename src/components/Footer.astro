@@ -1,8 +1,14 @@
 ---
+import { SITE_GITHUB_URL, SITE_CONTACT_EMAIL } from "~/consts";
 ---
 <footer class="site-footer">
 	<div class="container">
-		<p class="subtitle">ai-creed · 2026</p>
+		<p class="subtitle">
+			ai-creed · built by Vu Phan and his friends ·
+			<a href={SITE_GITHUB_URL}>github</a> ·
+			<a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
+			· 2026
+		</p>
 	</div>
 </footer>
 

@@ -18,6 +18,7 @@ const projects = defineCollection({
 			features: z.array(z.string()).min(3).max(6),
 			screenshot: image().optional(),
 			video: z.string().optional(),
+			wip: z.boolean().optional(),
 		})
 		.superRefine((val, ctx) => {
 			if (val.status === "public") {

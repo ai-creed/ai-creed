@@ -3,18 +3,26 @@ name: "ai-cortex"
 tagline: "project rehydration engine — fast cached knowledge for ai agents"
 status: "public"
 order: 2
-repo: "https://github.com/TODO/ai-cortex"
-install: "npm i -g ai-cortex"
+repo: "https://github.com/ai-creed/ai-cortex"
+install: |
+  git clone git@github.com:ai-creed/ai-cortex.git
+  cd ai-cortex
+  pnpm install
+  pnpm build
+  pnpm link --global
 features:
-  - "fast, cached project knowledge for new agent sessions"
-  - "tree-sitter indexing with call-graph analysis"
-  - "mcp server, cli, and library surface"
-  - "no repository writes — local-only cache"
+  - "rehydrate briefings so new agent sessions start warm"
+  - "fast + deep file suggestion ranked by path, call graph, and trigram/content scan"
+  - "blast-radius query — callers by hop distance before you refactor"
+  - "tree-sitter indexing for typescript and javascript"
+  - "mcp server, cli, and library surface — no repo writes"
 ---
+
+> Beta (`v0.3.0-beta.2`) — actively used. npm publish pending; install from source.
 
 ## what it does
 
-ai-cortex gives fresh agent sessions consistent, fast knowledge about a project without re-scanning the repo each time. It indexes code with tree-sitter, builds a trigram + call-graph cache, and exposes the result through a CLI, a library, and an MCP server.
+ai-cortex gives fresh agent sessions consistent, fast knowledge about a project without re-scanning the repo each time. It indexes code with tree-sitter, builds a call graph + trigram cache, and exposes the result through a CLI, a library, and an MCP server.
 
 ## why
 
@@ -23,6 +31,45 @@ New agent sessions start cold. Without cortex, they either re-scan (slow, expens
 ## usage
 
 ```bash
-cortex scan ./my-project
-cortex query "where is auth handled?"
+ai-cortex index /path/to/repo
+ai-cortex rehydrate /path/to/repo
+ai-cortex suggest "where is auth handled" /path/to/repo
 ```
+
+Register as an MCP server once so agents use it automatically:
+
+```bash
+claude mcp add -s user ai-cortex -- ai-cortex mcp
+```
+
+MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `index_project`, `blast_radius`.
+
+## example: agent session on ai-cortex itself
+
+```
+user → "where is the tree-sitter parser wired up?"
+
+agent → rehydrate_project
+  ai-cortex · v0.3.0-beta.2 · 183 files · 8 docs
+  key docs: README.md, docs/shared/high_level_plan.md
+
+agent → suggest_files { task: "where is the tree-sitter parser wired up?" }
+  top score: 3 · 2 code files in top-5
+  hint: "consider suggest_files_deep"
+  (mode: fast · 7ms · fresh cache)
+
+agent → suggest_files_deep { task: "where is the tree-sitter parser wired up?" }
+  1. src/lib/adapters/typescript.ts  score 12
+     reason: fn:initParsers,parserForExt | trigram:parser@1.00 | content:parser@L15
+       L16: let tsParser: import("web-tree-sitter").Parser | null = null;
+  2. README.md                       score 9   doc + content match
+  3. docs/shared/phase_0_plausibility_checklist.md  score 8   doc match
+  (mode: deep · 21ms · pool 60)
+
+agent opens src/lib/adapters/typescript.ts,
+and calls blast_radius on parserForExt before extending it.
+```
+
+## scope
+
+TypeScript / JavaScript only for call-graph extraction (other languages index but yield no graph). Requires Node ≥ 20. Cache is local per-worktree at `~/.cache/ai-cortex/`.

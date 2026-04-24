@@ -2,7 +2,9 @@
 import Base from "~/layouts/Base.astro";
 import StatusChip from "~/components/StatusChip.astro";
 import CodeBlock from "~/components/CodeBlock.astro";
+import WipNotice from "~/components/WipNotice.astro";
 import { getCollection, render } from "astro:content";
+import { Image } from "astro:assets";
 import { SITE_CONTACT_EMAIL } from "~/consts";
 
 export async function getStaticPaths() {
@@ -17,7 +19,6 @@ const { project } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 
-const isVideo = data.gif?.match(/\.(mp4|webm)$/);
 const repoHost = data.repo
 	? new URL(data.repo).host + new URL(data.repo).pathname
 	: "";
@@ -36,13 +37,21 @@ const repoHost = data.repo
 			<p class="tagline subtitle">{data.tagline}</p>
 		</header>
 
-		{data.gif && (
+		{data.wip && <WipNotice />}
+
+		{data.video && (
 			<div class="demo">
-				{isVideo ? (
-					<video src={data.gif} autoplay muted loop playsinline />
-				) : (
-					<img src={data.gif} alt={`${data.name} demo`} />
-				)}
+				<video src={data.video} autoplay muted loop playsinline />
+			</div>
+		)}
+		{data.screenshot && (
+			<div class="demo">
+				<Image
+					src={data.screenshot}
+					alt={`${data.name} screenshot`}
+					widths={[480, 800, 1200]}
+					sizes="(max-width: 720px) 100vw, 720px"
+				/>
 			</div>
 		)}
 

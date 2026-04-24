@@ -6,12 +6,16 @@ interface Props {
 	name: string;
 	tagline: string;
 	status: "public" | "private" | "stable";
+	wip?: boolean;
 }
-const { slug, name, tagline, status } = Astro.props;
+const { slug, name, tagline, status, wip } = Astro.props;
 ---
 <a class="card" href={`/projects/${slug}`}>
 	<div class="top">
-		<span class="name">{name}</span>
+		<span class="name">
+			{name}
+			{wip && <span class="wip-tag" title="work in progress">[wip]</span>}
+		</span>
 		<StatusChip status={status} />
 	</div>
 	<p class="tagline">{tagline}</p>
@@ -40,6 +44,12 @@ const { slug, name, tagline, status } = Astro.props;
 		margin-bottom: var(--s-2);
 	}
 	.name { font-size: var(--fs-base); font-weight: 600; }
+	.wip-tag {
+		margin-left: var(--s-2);
+		color: var(--warn);
+		font-weight: 500;
+		font-size: var(--fs-xs);
+	}
 	.tagline { color: var(--fg-dim); font-size: var(--fs-sm); }
 	.arrow {
 		position: absolute;

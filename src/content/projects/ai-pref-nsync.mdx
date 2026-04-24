@@ -3,19 +3,45 @@ name: "ai-pref-nsync"
 tagline: "git-backed personal preferences for ai coding assistants"
 status: "public"
 order: 3
-repo: "https://github.com/TODO/ai-pref-nsync"
-install: "npm i -g ai-pref-nsync"
+repo: "https://github.com/ai-creed/ai-pref-nsync"
+install: |
+  git clone git@github.com:ai-creed/ai-pref-nsync.git ~/.ai-pref-nsync
+  cd ~/.ai-pref-nsync
+  ./scripts/bootstrap-machine.sh
+  node ./scripts/render-preferences.mjs
 features:
-  - "one canonical preference store, versioned in git"
-  - "shared profiles with local per-machine overrides"
-  - "CLAUDE.md / codex config sync across machines"
-  - "no cloud — the store is your git remote"
+  - "one canonical preference store versioned in git — no cloud"
+  - "shared profiles with per-machine local overrides"
+  - "managed sentinel block in CLAUDE.md / codex instructions — hand edits outside are preserved"
+  - "four rule types: hard, conditional, repeatable-actions, conflict-resolutions"
+  - "memorize script — agent appends new prefs mid-session and re-renders"
 ---
 
 ## what it does
 
-ai-pref-nsync is a git-backed personal preferences system for AI coding assistants. It keeps CLAUDE.md, Codex config, and similar agent instructions in one versioned store so the same preferences follow you to every machine — with clean per-machine overrides when you need them.
+ai-pref-nsync keeps CLAUDE.md, Codex instructions, and similar agent-config files in one versioned store. Preferences are JSON — shared profiles plus per-machine overrides — rendered into each assistant's instruction file as a managed sentinel block, leaving hand edits outside the block untouched.
 
 ## why
 
 Every AI assistant wants its own config file. Without a shared store, preferences drift across machines and get out of sync. pref-nsync makes the store a first-class thing: one remote, one format, one command to sync.
+
+## example: memorize a preference mid-session
+
+When the agent sees you giving the same correction twice, it can call the memorize script itself:
+
+```bash
+node ~/.ai-pref-nsync/scripts/memorize-preference.mjs \
+  --kind hard \
+  --id reproduce-bug-with-test \
+  --category debugging \
+  --rule "Start bug fixes by writing a failing test."
+```
+
+The script appends to your local store, re-renders the sentinel block, and your next prompt already obeys the new rule — no manual edit of CLAUDE.md.
+
+## rule types
+
+- **hard** — always-on rules
+- **conditional** — apply only when specific conditions match (repo path, category, etc.)
+- **repeatable-actions** — default commands for common tasks per repo
+- **conflict-resolutions** — memorized decisions for personal-vs-project rule clashes
