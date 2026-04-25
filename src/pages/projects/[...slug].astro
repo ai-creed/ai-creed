@@ -58,14 +58,14 @@ const repoHost = data.repo
 			<Content />
 		</section>
 
-		{data.status === "public" && data.install && (
+		{data.status !== "private" && data.install && (
 			<section class="install">
 				<h2># install</h2>
 				<CodeBlock code={data.install} lang="bash" />
 			</section>
 		)}
 
-		{data.status === "public" && data.repo && (
+		{data.status !== "private" && data.repo && (
 			<footer class="cta">
 				<p>
 					repo: <a href={data.repo}>{repoHost}</a> →
@@ -114,6 +114,14 @@ const repoHost = data.repo
 
 	.body :global(p) { margin-bottom: var(--s-3); }
 	.body :global(pre) { margin: var(--s-3) 0; }
+	.body :global(blockquote) {
+		margin: var(--s-3) 0;
+		padding-left: var(--s-3);
+		border-left: 2px solid var(--border);
+		font-size: var(--fs-sm);
+		font-style: italic;
+		color: var(--fg-dim);
+	}
 
 	.cta {
 		margin-top: var(--s-8);
