@@ -5,7 +5,6 @@ import CodeBlock from "~/components/CodeBlock.astro";
 import WipNotice from "~/components/WipNotice.astro";
 import { getCollection, render } from "astro:content";
 import { Image } from "astro:assets";
-import { SITE_CONTACT_EMAIL } from "~/consts";
 
 export async function getStaticPaths() {
 	const projects = await getCollection("projects");
@@ -59,13 +58,6 @@ const repoHost = data.repo
 			<Content />
 		</section>
 
-		<section class="features">
-			<h2># features</h2>
-			<ul>
-				{data.features.map((f) => <li>{f}</li>)}
-			</ul>
-		</section>
-
 		{data.status === "public" && data.install && (
 			<section class="install">
 				<h2># install</h2>
@@ -73,18 +65,13 @@ const repoHost = data.repo
 			</section>
 		)}
 
-		<footer class="cta">
-			{data.status === "public" && data.repo ? (
+		{data.status === "public" && data.repo && (
+			<footer class="cta">
 				<p>
 					repo: <a href={data.repo}>{repoHost}</a> →
 				</p>
-			) : (
-				<p class="subtitle">
-					private — contact for access:
-					<a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
-				</p>
-			)}
-		</footer>
+			</footer>
+		)}
 	</article>
 </Base>
 
@@ -117,7 +104,6 @@ const repoHost = data.repo
 	}
 
 	.body :global(h2),
-	.features h2,
 	.install h2 {
 		color: var(--fg-dim);
 		font-weight: 500;
@@ -128,15 +114,6 @@ const repoHost = data.repo
 
 	.body :global(p) { margin-bottom: var(--s-3); }
 	.body :global(pre) { margin: var(--s-3) 0; }
-
-	.features ul {
-		list-style: none;
-		padding-left: 0;
-	}
-	.features li::before {
-		content: "- ";
-		color: var(--accent);
-	}
 
 	.cta {
 		margin-top: var(--s-8);

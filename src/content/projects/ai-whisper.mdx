@@ -2,7 +2,7 @@
 name: "ai-whisper"
 tagline: "local collaboration bridge for paired ai agent sessions"
 status: "private"
-order: 5
+order: 4
 wip: true
 features:
   - "terminal-first relay between paired agent sessions"
@@ -11,6 +11,7 @@ features:
   - "orchestrated round-trip evaluation loop"
   - "real codex + claude providers"
 ---
+import Features from "~/components/Features.astro";
 
 ## what it does
 
@@ -19,3 +20,5 @@ ai-whisper is a local bridge that lets two agent sessions collaborate: one relay
 ## why
 
 Hard agent tasks go better with a second agent reviewing. Whisper makes that pairing feel like one workflow instead of two terminals pretending to talk to each other.
+
+<Features list={frontmatter.features} />

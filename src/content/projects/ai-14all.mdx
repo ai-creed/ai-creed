@@ -17,6 +17,7 @@ features:
   - "keyboard shortcut registry with grouped help dialog"
 screenshot: "./ai-14all.png"
 ---
+import Features from "~/components/Features.astro";
 
 > Beta (`v0.1.0-beta.14`) — macOS Apple Silicon only, unsigned build. Right-click-Open on first launch to clear Gatekeeper.
 
@@ -28,7 +29,9 @@ ai-14all is a terminal-first Electron shell for AI coding agents. It keeps the a
 
 Agent-assisted work spreads across parallel worktrees. Juggling multiple shells, editors, and review tabs breaks flow. 14all collapses that into one window — one shell stack per worktree, one click to review, no ceremony.
 
-## Download
+<Features list={frontmatter.features} />
+
+## download
 
 Latest stable release: **v0.1.0** — [ai-14all-0.1.0-arm64.dmg](https://downloads.ai-creed.dev/ai-14all/0.1.0/ai-14all-0.1.0-arm64.dmg)
 

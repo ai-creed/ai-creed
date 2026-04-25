@@ -17,6 +17,7 @@ features:
   - "tree-sitter indexing for typescript and javascript"
   - "mcp server, cli, and library surface — no repo writes"
 ---
+import Features from "~/components/Features.astro";
 
 > Beta (`v0.3.0-beta.2`) — actively used. npm publish pending; install from source.
 
@@ -27,6 +28,8 @@ ai-cortex gives fresh agent sessions consistent, fast knowledge about a project 
 ## why
 
 New agent sessions start cold. Without cortex, they either re-scan (slow, expensive) or skip exploration (lossy). Cortex is the small local service that keeps the knowledge layer warm.
+
+<Features list={frontmatter.features} />
 
 ## usage
 

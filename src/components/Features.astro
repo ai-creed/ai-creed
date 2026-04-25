@@ -1,0 +1,23 @@
+---
+interface Props {
+	list: string[];
+}
+const { list } = Astro.props;
+---
+<section class="features">
+	<h2># features</h2>
+	<ul>
+		{list.map((f) => <li>{f}</li>)}
+	</ul>
+</section>
+
+<style>
+	.features ul {
+		list-style: none;
+		padding-left: 0;
+	}
+	.features li::before {
+		content: "- ";
+		color: var(--accent);
+	}
+</style>

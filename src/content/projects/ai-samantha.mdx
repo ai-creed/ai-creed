@@ -2,7 +2,7 @@
 name: "ai-samantha"
 tagline: "voice-first electron companion for the ai-* ecosystem"
 status: "private"
-order: 4
+order: 5
 wip: true
 features:
   - "local speech recognition (whisper)"
@@ -12,6 +12,7 @@ features:
   - "cross-session short-term memory (8 turns, 72h)"
   - "connector contract + local server (integration surface WIP)"
 ---
+import Features from "~/components/Features.astro";
 
 ## what it does
 
@@ -20,3 +21,5 @@ ai-samantha is a voice-first companion app. Talk to it, ask what's happening acr
 ## why
 
 Sometimes you want to ask a question without switching windows. Samantha is the always-on voice surface for the rest of the ecosystem.
+
+<Features list={frontmatter.features} />

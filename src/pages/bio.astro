@@ -1,0 +1,89 @@
+---
+import Base from "~/layouts/Base.astro";
+import { SITE_CONTACT_EMAIL } from "~/consts";
+---
+<Base title="bio — ai-creed" description="who builds ai-creed">
+	<article class="container">
+		<header class="head">
+			<h1 class="title">bio</h1>
+			<p class="subtitle tag">who builds ai-creed.</p>
+		</header>
+
+		<section class="section">
+			<h2 class="heading"># Vu Phan</h2>
+			<p class="role subtitle">builder and maintainer</p>
+			<p>
+				I'm an engineer-of-one in Vietnam. Day job at <a href="https://www.favro.com/">Favro</a>. Twelve-plus years of writing code.
+			</p>
+			<p>
+				What stuck: tooling I can read end-to-end, performance I can feel, software that respects the workstation it runs on. ai-creed is where that taste ships — build for the workflow, build for the agents that work in it. Build what matters.
+			</p>
+			<ul class="links">
+				<li>github: <a href="https://github.com/vuphanse">@vuphanse</a></li>
+				<li>email: <a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a></li>
+			</ul>
+		</section>
+
+		<section class="section">
+			<h2 class="heading"># friends</h2>
+			<p class="subtitle tag">people who help push the stack further.</p>
+
+			<div class="person">
+				<h3 class="person-name">Phu Nguyen</h3>
+				<p class="role subtitle">frontend dev</p>
+				<p>
+					Frontend at <strong>Naver Vietnam</strong>. Joins ai-creed from the front of the screen — UI, polish, and a steady second pair of eyes on what's worth shipping.
+				</p>
+				<ul class="links">
+					<li>github: <a href="https://github.com/PhuND97">@PhuND97</a></li>
+				</ul>
+			</div>
+		</section>
+
+		<section class="section">
+			<h2 class="heading"># want in?</h2>
+			<p>
+				ai-creed is small on purpose, but not closed. If a tool fits your flow,
+				or you want to pair on one — bug reports, pull requests, design notes,
+				or "hey this should do X" emails all welcome.
+				<a href={`mailto:${SITE_CONTACT_EMAIL}`}>say hi</a>.
+			</p>
+		</section>
+	</article>
+</Base>
+
+<style>
+	.head { margin-bottom: var(--s-6); }
+	.title { font-size: var(--fs-h1); font-weight: 600; }
+	.tag { margin-top: var(--s-2); }
+
+	.heading {
+		color: var(--fg-dim);
+		font-weight: 500;
+		margin-bottom: var(--s-2);
+	}
+	.section p + p { margin-top: var(--s-3); }
+	.role {
+		font-size: var(--fs-sm);
+		color: var(--accent);
+		margin-bottom: var(--s-3);
+	}
+	.person { margin-top: var(--s-5); }
+	.person-name {
+		font-size: var(--fs-h3);
+		font-weight: 600;
+		margin-bottom: var(--s-1);
+	}
+
+	.links {
+		list-style: none;
+		padding-left: 0;
+		margin-top: var(--s-3);
+		font-size: var(--fs-sm);
+		color: var(--fg-dim);
+	}
+	.links li::before {
+		content: "- ";
+		color: var(--accent);
+	}
+</style>

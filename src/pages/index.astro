@@ -13,7 +13,7 @@ const projects = (await getCollection("projects")).sort(
 	<section class="hero container">
 		<PromptTitle text="local-first ai dev tooling" />
 		<p class="blurb subtitle">
-			five tools. one philosophy. built for agents that live on your machine.
+			five local-first tools. one conviction: the agent works for you.
 		</p>
 	</section>
 
@@ -58,7 +58,8 @@ const projects = (await getCollection("projects")).sort(
 	}
 	.blurb {
 		margin-top: var(--s-3);
-		max-width: 560px;
+		max-width: 640px;
+		text-wrap: balance;
 	}
 	.heading {
 		color: var(--fg-dim);

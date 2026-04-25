@@ -16,6 +16,7 @@ features:
   - "four rule types: hard, conditional, repeatable-actions, conflict-resolutions"
   - "memorize script — agent appends new prefs mid-session and re-renders"
 ---
+import Features from "~/components/Features.astro";
 
 ## what it does
 
@@ -24,6 +25,8 @@ ai-pref-nsync keeps CLAUDE.md, Codex instructions, and similar agent-config file
 ## why
 
 Every AI assistant wants its own config file. Without a shared store, preferences drift across machines and get out of sync. pref-nsync makes the store a first-class thing: one remote, one format, one command to sync.
+
+<Features list={frontmatter.features} />
 
 ## example: memorize a preference mid-session
 
