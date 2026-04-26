@@ -14,6 +14,7 @@ features:
   - "rehydrate briefings so new agent sessions start warm"
   - "fast + deep file suggestion ranked by path, call graph, and trigram/content scan"
   - "blast-radius query — callers by hop distance before you refactor"
+  - "session history capture — compacts past sessions and surfaces them via search_history"
   - "tree-sitter indexing for typescript and javascript"
   - "mcp server, cli, and library surface — no repo writes"
 ---
@@ -45,7 +46,7 @@ Register as an MCP server once so agents use it automatically:
 claude mcp add -s user ai-cortex -- ai-cortex mcp
 ```
 
-MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `index_project`, `blast_radius`.
+MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `index_project`, `blast_radius`, `search_history`.
 
 ## example: agent session on ai-cortex itself
 
@@ -72,6 +73,32 @@ agent → suggest_files_deep { task: "where is the tree-sitter parser wired up?"
 agent opens src/lib/adapters/typescript.ts,
 and calls blast_radius on parserForExt before extending it.
 ```
+
+## session history
+
+Agent harnesses compact prior messages as the context window fills. Corrections the user gave, decisions made mid-task, file paths referenced once — all lost. `search_history` recovers them.
+
+cortex captures each session locally (no repo writes, no cloud), compacts it into structured chunks with sentence embeddings, and exposes it through a single MCP tool. Hooks into Claude Code's `PreCompact` and `SessionEnd` events so capture is automatic.
+
+```bash
+# install hooks once
+ai-cortex history install-hooks
+
+# search past sessions from inside an agent
+search_history { query: "what did we decide about the auth flow?" }
+# → [session abc · correction · turn 42 · score 0.91]
+# → "no, keep the token in httpOnly cookie — we agreed on that"
+```
+
+```bash
+# manual capture / management
+ai-cortex history capture --session <id>
+ai-cortex history list
+ai-cortex history prune --before 2026-01-01
+ai-cortex history off   # disable capture
+```
+
+History is stored under `~/.cache/ai-cortex/v1/<repoKey>/history/` — local, per-project, prunable.
 
 ## scope
 
