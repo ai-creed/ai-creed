@@ -5,11 +5,7 @@ status: "public"
 order: 2
 repo: "https://github.com/ai-creed/ai-cortex"
 install: |
-  git clone git@github.com:ai-creed/ai-cortex.git
-  cd ai-cortex
-  pnpm install
-  pnpm build
-  pnpm link --global
+  npm i -g ai-cortex@beta
 features:
   - "rehydrate briefings so new agent sessions start warm"
   - "fast + deep file suggestion ranked by path, call graph, and trigram/content scan"
@@ -20,7 +16,7 @@ features:
 ---
 import Features from "~/components/Features.astro";
 
-> Beta (`v0.3.0-beta.2`) — actively used. npm publish pending; install from source.
+> Beta (`v0.3.0-beta.5`) — actively used. Available on npm.
 
 ## what it does
 
@@ -46,7 +42,7 @@ Register as an MCP server once so agents use it automatically:
 claude mcp add -s user ai-cortex -- ai-cortex mcp
 ```
 
-MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `index_project`, `blast_radius`, `search_history`.
+MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `suggest_files_semantic`, `index_project`, `blast_radius`, `search_history`.
 
 ## example: agent session on ai-cortex itself
 
@@ -54,7 +50,7 @@ MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `
 user → "where is the tree-sitter parser wired up?"
 
 agent → rehydrate_project
-  ai-cortex · v0.3.0-beta.2 · 183 files · 8 docs
+  ai-cortex · v0.3.0-beta.5 · 183 files · 8 docs
   key docs: README.md, docs/shared/high_level_plan.md
 
 agent → suggest_files { task: "where is the tree-sitter parser wired up?" }
