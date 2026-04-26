@@ -78,7 +78,7 @@ and calls blast_radius on parserForExt before extending it.
 
 Agent harnesses compact prior messages as the context window fills. Corrections the user gave, decisions made mid-task, file paths referenced once — all lost. `search_history` recovers them.
 
-cortex captures each session locally (no repo writes, no cloud), compacts it into structured chunks with sentence embeddings, and exposes it through a single MCP tool. Hooks into Claude Code's `PreCompact` and `SessionEnd` events so capture is automatic.
+cortex captures each session locally (no repo writes, no cloud), compacts it into structured chunks with sentence embeddings, and exposes it through a single MCP tool. Hooks into Claude Code's `PreCompact` and `SessionEnd` events, plus Codex's `UserPromptSubmit` and `Stop` events, so capture is automatic across both agents.
 
 ```bash
 # install hooks once
