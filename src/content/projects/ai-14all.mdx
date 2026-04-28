@@ -14,6 +14,7 @@ features:
   - "embedded pty terminals per worktree (node-pty + xterm)"
   - "monaco-powered read-only file view and lightweight diff review"
   - "multi-workspace fast switching with persisted restore"
+  - "instant inline code review — highlight any line, leave a comment, agent picks it up and fixes in place"
   - "keyboard shortcut registry with grouped help dialog"
 screenshot: "./ai-14all.png"
 ---
@@ -29,9 +30,19 @@ Agent-assisted work spreads across parallel worktrees. Juggling multiple shells,
 
 <Features list={frontmatter.features} />
 
+## instant code review
+
+Reviewing agent output usually means context-switching to GitHub, leaving line comments, waiting for the agent to read them back. 14all collapses that loop into the editor itself.
+
+<div style="margin: var(--s-4) 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+  <video src="/ai-14all/inline-comment-demo.mp4" autoplay muted loop playsinline style="display: block; width: 100%; height: auto;" />
+</div>
+
+Highlight any line in the diff view, drop a comment inline, and the agent picks it up on its next turn — no PR round-trip, no copy-paste, no losing the spot in the file. Comments stay anchored to the code as the agent rewrites it.
+
 ## download
 
-Latest stable release: **v0.1.0** — [ai-14all-0.1.0-arm64.dmg](https://github.com/ai-creed/ai-14all/releases/download/v0.1.0/ai-14all-0.1.0-arm64.dmg)
+Latest stable release: **v0.1.1** — [ai-14all-0.1.1-arm64.dmg](https://github.com/ai-creed/ai-14all/releases/download/v0.1.1/ai-14all-0.1.1-arm64.dmg)
 
 > macOS Apple Silicon only, unsigned build. Right-click-Open on first launch to clear Gatekeeper.
 
