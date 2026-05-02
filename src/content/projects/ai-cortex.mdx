@@ -1,101 +1,95 @@
 ---
 name: "ai-cortex"
-tagline: "project rehydration engine — fast cached knowledge for ai agents"
+tagline: "local intelligence layer for ai agents — context, memory, and continuity without touching the repo"
 status: "public"
 order: 2
 repo: "https://github.com/ai-creed/ai-cortex"
 install: |
-  npm i -g ai-cortex@beta
+  npm i -g ai-cortex
 features:
-  - "rehydrate briefings so new agent sessions start warm"
-  - "fast + deep file suggestion ranked by path, call graph, and trigram/content scan"
-  - "blast-radius query — callers by hop distance before you refactor"
-  - "session history capture — compacts past sessions and surfaces them via search_history"
-  - "tree-sitter indexing for typescript and javascript"
-  - "mcp server, cli, and library surface — no repo writes"
+  - "rehydrate — every agent session starts warm: project structure, key files, pinned memories, in milliseconds"
+  - "suggest — find the right files for any task in three ranking modes, plus blast-radius callers before you refactor"
+  - "history — never lose a correction, decision, or referenced file when the harness compacts the conversation away"
+  - "remember — persistent memory of decisions, gotchas, how-tos; agents recall them, apply them, cite the why"
+  - "multi-language — typescript, javascript, python, c, c++ indexed with tree-sitter"
+  - "agent-agnostic — 33 mcp tools, cli, and library; local-first; zero writes into your repo"
 ---
 import Features from "~/components/Features.astro";
 
-> Beta (`v0.3.0-beta.5`) — actively used. Available on npm.
+> v0.5.1 — actively used. Available on npm.
 
 ## what it does
 
-ai-cortex gives fresh agent sessions consistent, fast knowledge about a project without re-scanning the repo each time. It indexes code with tree-sitter, builds a call graph + trigram cache, and exposes the result through a CLI, a library, and an MCP server.
+Three layers, one substrate: **structural** (rehydrate, suggest, blast-radius), **continuity** (history capture + memory extraction), **integration** (33 MCP tools, briefing injection). Cache lives at `~/.cache/ai-cortex/` — never inside the target repo.
 
-## why
-
-New agent sessions start cold. Without cortex, they either re-scan (slow, expensive) or skip exploration (lossy). Cortex is the small local service that keeps the knowledge layer warm.
+> **Make agents start fast, stay grounded, and never lose context.**
 
 <Features list={frontmatter.features} />
 
-## usage
-
-```bash
-ai-cortex index /path/to/repo
-ai-cortex rehydrate /path/to/repo
-ai-cortex suggest "where is auth handled" /path/to/repo
-```
-
-Register as an MCP server once so agents use it automatically:
-
-```bash
-claude mcp add -s user ai-cortex -- ai-cortex mcp
-```
-
-MCP tools exposed: `rehydrate_project`, `suggest_files`, `suggest_files_deep`, `suggest_files_semantic`, `index_project`, `blast_radius`, `search_history`.
-
-## example: agent session on ai-cortex itself
+## a session, end to end
 
 ```
-user → "where is the tree-sitter parser wired up?"
-
 agent → rehydrate_project
-  ai-cortex · v0.3.0-beta.5 · 183 files · 8 docs
-  key docs: README.md, docs/shared/high_level_plan.md
+  ai-cortex · v0.5.1 · 330 files · pinned: "never write into the target repo"
+  memory digest: 16 decisions · 8 gotchas · 3 how-tos
 
-agent → suggest_files { task: "where is the tree-sitter parser wired up?" }
-  top score: 3 · 2 code files in top-5
-  hint: "consider suggest_files_deep"
-  (mode: fast · 7ms · fresh cache)
-
-agent → suggest_files_deep { task: "where is the tree-sitter parser wired up?" }
-  1. src/lib/adapters/typescript.ts  score 12
-     reason: fn:initParsers,parserForExt | trigram:parser@1.00 | content:parser@L15
-       L16: let tsParser: import("web-tree-sitter").Parser | null = null;
-  2. README.md                       score 9   doc + content match
-  3. docs/shared/phase_0_plausibility_checklist.md  score 8   doc match
-  (mode: deep · 21ms · pool 60)
-
-agent opens src/lib/adapters/typescript.ts,
-and calls blast_radius on parserForExt before extending it.
+agent → recall_memory  { query: "auth" }   # browse — no signal
+agent → get_memory     { id: "..." }       # apply — counts as used
+agent → suggest_files_deep { task: "..." } # path + trigram + content
+agent → blast_radius   { qualifiedName: "parserForExt", file: "..." }
 ```
+
+`recall_memory` is browse, `get_memory(id)` is the use signal — the cardinal pattern that makes memory usefulness measurable per-record, not aggregate.
+
+## memory
+
+The most valuable context is nowhere in the repo: *"we tried X, it broke under load, we use Y now"*, *"this module is owned by team Z"*, *"always use POST for create endpoints — agreed last quarter"*. Code shows the *what*; memory shows the *why* and the *what we tried that didn't work*. cortex captures it once, surfaces it forever.
+
+```
+user → "should I write tests with mocks here?"
+
+agent → recall_memory { query: "mock database tests" }
+  → "integration tests must hit a real database, not mocks"
+    type: decision · confidence 0.95 · pinned
+
+agent → get_memory { id: "mem-2026-03-15-..." }
+  ← rule:  integration tests MUST hit a real database
+    why:   prior incident — mocked tests passed, prod migration broke
+    when:  any test under tests/integration/
+
+agent → "no — your project rule says integration tests use a real db.
+         here's the reasoning [cites memory]. want me to set up a test container?"
+```
+
+The agent didn't re-derive. It recalled, applied, and explained the *why*.
 
 ## session history
 
-Agent harnesses compact prior messages as the context window fills. Corrections the user gave, decisions made mid-task, file paths referenced once — all lost. `search_history` recovers them.
+Long agent sessions hit the context window and compact away the conversation. Corrections you gave, decisions made mid-task, file paths referenced once — all gone. cortex keeps every session searchable so the agent can recover what it was about to forget.
 
-cortex captures each session locally (no repo writes, no cloud), compacts it into structured chunks with sentence embeddings, and exposes it through a single MCP tool. Hooks into Claude Code's `PreCompact` and `SessionEnd` events, plus Codex's `UserPromptSubmit` and `Stop` events, so capture is automatic across both agents.
+```
+user → "wait, what did we decide about the auth token?"
 
-```bash
-# install hooks once
-ai-cortex history install-hooks
+agent → search_history { query: "auth token decision" }
+  → [session 7df1c · correction · turn 42 · score 0.91]
+    "no, keep the token in httpOnly cookie — we agreed on that"
+  → [session 7df1c · userPrompt · turn 38 · score 0.84]
+    "localStorage is fine for the dev demo but not for prod"
 
-# search past sessions from inside an agent
-search_history { query: "what did we decide about the auth flow?" }
-# → [session abc · correction · turn 42 · score 0.91]
-# → "no, keep the token in httpOnly cookie — we agreed on that"
+agent → "you decided to keep auth tokens in httpOnly cookies after
+         ruling out localStorage for prod. that was 4 sessions ago."
 ```
 
-```bash
-# manual capture / management
-ai-cortex history capture --session <id>
-ai-cortex history list
-ai-cortex history prune --before 2026-01-01
-ai-cortex history off   # disable capture
-```
+Context the harness threw away, recovered in one tool call.
 
-History is stored under `~/.cache/ai-cortex/v1/<repoKey>/history/` — local, per-project, prunable.
+## why it compounds
+
+- **integration** — repo + memory + history share storage, audit, vectors, lifecycle. Cloning one layer doesn't reproduce the value.
+- **improvement** — re-extraction bumps confidence, rewrite cleanup auto-promotes, aging trashes stale, access counters gate cleanup.
+- **substrate, not agent** — agent-agnostic via MCP. Same store serves Claude Code, Codex, Cline, and whatever ships next.
 
 ## scope
 
-TypeScript / JavaScript only for call-graph extraction (other languages index but yield no graph). Requires Node ≥ 20. Cache is local per-worktree at `~/.cache/ai-cortex/`.
+TS/JS/Python/C/C++ via tree-sitter. Node ≥ 20. Cache local per-worktree at `~/.cache/ai-cortex/`. No writes into the target repo, ever.
+
+> **Cortex makes agents understand your project and remember it.**
