@@ -18,10 +18,6 @@ import Features from "~/components/Features.astro";
 
 > v0.5.1 — actively used. Available on npm.
 
-<div class="demo">
-  <img src="/ai-cortex/demo.gif" alt="ai-cortex demo: agent recalls a past decision and cites it" style="display: block; width: 100%; height: auto;" />
-</div>
-
 ## what it does
 
 Three layers, one substrate: **structural** (rehydrate, suggest, blast-radius), **continuity** (history capture + memory extraction), **integration** (33 MCP tools, briefing injection). Cache lives at `~/.cache/ai-cortex/` — never inside the target repo.
@@ -49,23 +45,11 @@ agent → blast_radius   { qualifiedName: "parserForExt", file: "..." }
 
 The most valuable context is nowhere in the repo: *"we tried X, it broke under load, we use Y now"*, *"this module is owned by team Z"*, *"always use POST for create endpoints — agreed last quarter"*. Code shows the *what*; memory shows the *why* and the *what we tried that didn't work*. cortex captures it once, surfaces it forever.
 
-```
-user → "should I write tests with mocks here?"
+<div class="demo">
+  <img src="/ai-cortex/demo.gif" alt="ai-cortex demo: agent recalls a past decision and cites it" style="display: block; width: 100%; height: auto;" />
+</div>
 
-agent → recall_memory { query: "mock database tests" }
-  → "integration tests must hit a real database, not mocks"
-    type: decision · confidence 0.95 · pinned
-
-agent → get_memory { id: "mem-2026-03-15-..." }
-  ← rule:  integration tests MUST hit a real database
-    why:   prior incident — mocked tests passed, prod migration broke
-    when:  any test under tests/integration/
-
-agent → "no — your project rule says integration tests use a real db.
-         here's the reasoning [cites memory]. want me to set up a test container?"
-```
-
-The agent didn't re-derive. It recalled, applied, and explained the *why*.
+Session 47 finds a rule from session 12, cites it, applies it. The agent didn't re-derive — it remembered.
 
 ## session history
 
