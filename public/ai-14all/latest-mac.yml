@@ -1,11 +1,11 @@
-version: 0.5.0
-releaseDate: '2026-05-19T03:59:45.279Z'
-path: https://github.com/ai-creed/ai-14all/releases/download/v0.5.0/ai-14all-0.5.0-arm64.dmg
-sha512: QCLyVHjfIZ4aKS2UX8B7193Py6QpVry7wdh3O7+WvUhKCooYJA0LWBcAPgSN/QwQ6V7g26heXiR4jdw0sYCdoA==
+version: 0.5.1
+releaseDate: '2026-05-19T07:28:13.442Z'
+path: https://github.com/ai-creed/ai-14all/releases/download/v0.5.1/ai-14all-0.5.1-arm64.dmg
+sha512: k7lhhLw75yv4bBBQvMQshu+tv0G11xD9Lsw64oIu1D5tnwNEDyyrlJDlqkP6lBMs5WEecpdC6v82qbajEoFQkw==
 files:
-  - url: https://github.com/ai-creed/ai-14all/releases/download/v0.5.0/ai-14all-0.5.0-arm64-mac.zip
-    sha512: 83eZVbsddZmK9kdy19RG3eNYWvyi9+1koOHgXZBkIEWCNPknit8DTgRb/FGuyX+nG7+hz6BU7F7hwytWz6I2Mw==
-    size: 130934759
-  - url: https://github.com/ai-creed/ai-14all/releases/download/v0.5.0/ai-14all-0.5.0-arm64.dmg
-    sha512: QCLyVHjfIZ4aKS2UX8B7193Py6QpVry7wdh3O7+WvUhKCooYJA0LWBcAPgSN/QwQ6V7g26heXiR4jdw0sYCdoA==
-    size: 136179010
+  - url: https://github.com/ai-creed/ai-14all/releases/download/v0.5.1/ai-14all-0.5.1-arm64-mac.zip
+    sha512: W/Fvkgg8Ojk5sNlf33XX7iQDbYjoJzHWzI/Z/kehpy1wvzvaBKjfdKptxCiTxSgK5sWFQME8tlwEVzeMqQZf4Q==
+    size: 130934867
+  - url: https://github.com/ai-creed/ai-14all/releases/download/v0.5.1/ai-14all-0.5.1-arm64.dmg
+    sha512: k7lhhLw75yv4bBBQvMQshu+tv0G11xD9Lsw64oIu1D5tnwNEDyyrlJDlqkP6lBMs5WEecpdC6v82qbajEoFQkw==
+    size: 136178968
