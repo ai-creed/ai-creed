@@ -11,12 +11,12 @@ features:
   - "suggest — find the right files for any task in three ranking modes, plus blast-radius callers before you refactor"
   - "history — never lose a correction, decision, or referenced file when the harness compacts the conversation away"
   - "remember — persistent memory of decisions, gotchas, how-tos; agents recall them, apply them, cite the why"
-  - "multi-language — typescript, javascript, python, c, c++ indexed with tree-sitter"
-  - "agent-agnostic — 33 mcp tools, cli, and library; local-first; zero writes into your repo"
+  - "surface — relevant memories fire automatically before an edit; no more agents forgetting to ask"
+  - "agent-agnostic — 30+ mcp tools, cli, and library; local-first; zero writes into your repo"
 ---
 import Features from "~/components/Features.astro";
 
-> v0.5.1 — actively used. Available on npm.
+> v0.10.3 — actively used. Available on npm.
 
 ## what it does
 
@@ -30,7 +30,7 @@ Three layers, one substrate: **structural** (rehydrate, suggest, blast-radius), 
 
 ```
 agent → rehydrate_project
-  ai-cortex · v0.5.1 · 330 files · pinned: "never write into the target repo"
+  ai-cortex · v0.10.3 · 330 files · pinned: "never write into the target repo"
   memory digest: 16 decisions · 8 gotchas · 3 how-tos
 
 agent → recall_memory  { query: "auth" }   # browse — no signal
@@ -50,6 +50,10 @@ The most valuable context is nowhere in the repo: *"we tried X, it broke under l
 </div>
 
 Session 47 finds a rule from session 12, cites it, applies it. The agent didn't re-derive — it remembered.
+
+## surface
+
+Recall depends on the agent *remembering to ask*. Surface doesn't. Before an edit lands, ai-cortex slips the file's relevant memories into the agent's working context — the rule shows up at the moment it matters, not after the mistake. Available in Claude Code today; Codex follows as the harness opens the same hook.
 
 ## session history
 
