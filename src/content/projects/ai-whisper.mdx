@@ -1,9 +1,11 @@
 ---
 name: "ai-whisper"
 tagline: "terminal-first relay for paired ai coding agents, driven by structured workflows"
-status: "private"
-order: 4
-wip: true
+status: "public"
+order: 3
+repo: "https://github.com/ai-creed/ai-whisper"
+install: |
+  npm install -g ai-whisper
 features:
   - "structured workflows — spec-driven-development and ralph-loop"
   - "single-baton relay — one owner at a time, not a swarm"
@@ -14,6 +16,8 @@ features:
 ---
 import Features from "~/components/Features.astro";
 
+> v0.1.2 — open source, on npm, actively used personally.
+
 ## what it does
 
 ai-whisper pairs two coding agents — Claude and Codex — in your terminal. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop).
@@ -22,7 +26,15 @@ ai-whisper pairs two coding agents — Claude and Codex — in your terminal. Th
 
 Hard agent tasks go better with a second agent reviewing. Whisper makes that pairing feel like one workflow instead of two terminals pretending to talk to each other.
 
+ai-whisper was built this way: nearly every feature started as a spec run through its own spec-driven-development workflow.
+
 <Features list={frontmatter.features} />
+
+## workflows
+
+A workflow is a structured loop — phases, gates, round budgets — not a long prompt. Pick by whether you can describe "done" up front: **spec-driven-development** when you can (it sharpens a spec into a plan, then executes it under review), **ralph-loop** when you can't (it grinds an open-ended goal chunk-by-chunk, a reviewer gating each one). Either way you write the spec or goal; the run converges on the criteria you set — so a precise artifact is most of the outcome.
+
+Autonomous covers the *loop*, not the ship decision. A finished run is a strong draft: you still read the diff, run it, and QA it before it lands. ai-whisper does the convergence and hands you the full trail to judge fast.
 
 ## see it run
 
