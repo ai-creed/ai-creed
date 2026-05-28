@@ -31,7 +31,12 @@ const repoHost = data.repo
 		<header class="head">
 			<div class="title-row">
 				<h1 class="name">{data.name}</h1>
-				<StatusChip status={data.status} />
+				<div class="head-actions">
+					{data.download && (
+						<a class="download-cta" href={data.download} download>↓ download</a>
+					)}
+					<StatusChip status={data.status} />
+				</div>
 			</div>
 			<p class="tagline subtitle">{data.tagline}</p>
 		</header>
@@ -90,6 +95,26 @@ const repoHost = data.repo
 	}
 	.name { font-size: var(--fs-h1); font-weight: 600; }
 	.tagline { margin-top: var(--s-2); }
+
+	.head-actions {
+		display: flex;
+		align-items: center;
+		gap: var(--s-2);
+	}
+	.download-cta {
+		font-size: var(--fs-xs);
+		padding: 2px var(--s-2);
+		border-radius: var(--radius);
+		border: 1px solid var(--accent);
+		color: var(--accent);
+		line-height: 1.2;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.download-cta:hover {
+		background: var(--accent);
+		color: var(--bg);
+	}
 
 	.demo {
 		margin: var(--s-6) 0;
