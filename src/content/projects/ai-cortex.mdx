@@ -16,11 +16,11 @@ features:
 ---
 import Features from "~/components/Features.astro";
 
-> v0.10.3 — actively used. Available on npm.
+> v0.11.1 — actively used. Available on npm.
 
 ## what it does
 
-Three layers, one substrate: **structural** (rehydrate, suggest, blast-radius), **continuity** (history capture + memory extraction), **integration** (33 MCP tools, briefing injection). Cache lives at `~/.cache/ai-cortex/` — never inside the target repo.
+Three layers, one substrate: **structural** (rehydrate, suggest, blast-radius), **continuity** (history capture + memory extraction), **integration** (30+ MCP tools, briefing injection). Cache lives at `~/.cache/ai-cortex/` — never inside the target repo.
 
 > **Make agents start fast, stay grounded, and never lose context.**
 
@@ -30,7 +30,7 @@ Three layers, one substrate: **structural** (rehydrate, suggest, blast-radius), 
 
 ```
 agent → rehydrate_project
-  ai-cortex · v0.10.3 · 330 files · pinned: "never write into the target repo"
+  ai-cortex · v0.11.1 · 330 files · pinned: "never write into the target repo"
   memory digest: 16 decisions · 8 gotchas · 3 how-tos
 
 agent → recall_memory  { query: "auth" }   # browse — no signal
@@ -53,7 +53,7 @@ Session 47 finds a rule from session 12, cites it, applies it. The agent didn't 
 
 ## surface
 
-Recall depends on the agent *remembering to ask*. Surface doesn't. Before an edit lands, ai-cortex slips the file's relevant memories into the agent's working context — the rule shows up at the moment it matters, not after the mistake. Available in Claude Code today; Codex follows as the harness opens the same hook.
+Recall depends on the agent *remembering to ask*. Surface doesn't. Before an edit lands, ai-cortex slips the file's relevant memories into the agent's working context — the rule shows up at the moment it matters, not after the mistake. Live in both Claude Code and Codex today, via each harness's pre-edit hook.
 
 ## session history
 

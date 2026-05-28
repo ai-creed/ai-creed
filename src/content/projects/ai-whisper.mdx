@@ -7,20 +7,20 @@ repo: "https://github.com/ai-creed/ai-whisper"
 install: |
   npm install -g ai-whisper
 features:
-  - "structured workflows — spec-driven-development and ralph-loop"
+  - "structured workflows — spec-driven-development, ralph-loop, complex-bug-fixing"
   - "single-baton relay — one owner at a time, not a swarm"
   - "role-agnostic — workflows assign the roles (today: implementer + reviewer)"
   - "autonomous loops gated by an llm evaluator"
-  - "resumable runs — inspect and recover, don't restart"
+  - "pausable, resumable runs — pause a healthy run mid-flight, recover a stuck one, don't restart"
   - "real mounted claude + codex sessions as the source of truth"
 ---
 import Features from "~/components/Features.astro";
 
-> v0.1.2 — open source, on npm, actively used personally.
+> v0.3.0 — open source, on npm, actively used personally.
 
 ## what it does
 
-ai-whisper pairs two coding agents — Claude and Codex — in your terminal. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop).
+ai-whisper pairs two coding agents — Claude and Codex today, provider-agnostic by design — in your terminal. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop, complex-bug-fixing).
 
 ## why
 
@@ -32,7 +32,15 @@ ai-whisper was built this way: nearly every feature started as a spec run throug
 
 ## workflows
 
-A workflow is a structured loop — phases, gates, round budgets — not a long prompt. Pick by whether you can describe "done" up front: **spec-driven-development** when you can (it sharpens a spec into a plan, then executes it under review), **ralph-loop** when you can't (it grinds an open-ended goal chunk-by-chunk, a reviewer gating each one). Either way you write the spec or goal; the run converges on the criteria you set — so a precise artifact is most of the outcome.
+A workflow is a structured loop — phases, gates, round budgets — not a long prompt. Pick by the shape of the work:
+
+- **spec-driven-development** — when you can describe "done" up front. Sharpens a spec into a plan, then executes it under review.
+- **ralph-loop** — when you can't. Grinds an open-ended goal chunk-by-chunk, a reviewer gating each one.
+- **complex-bug-fixing** — when a bug is reported but the root cause isn't. Three phases (diagnosis → fix-and-verify → post-mortem), with the implementer required to reproduce the bug — a committed failing test, not speculation from reading code.
+
+<br />
+
+Whichever you pick, you write the spec, goal, or bug report; the run converges on the criteria you set — so a precise artifact is most of the outcome.
 
 Autonomous covers the *loop*, not the ship decision. A finished run is a strong draft: you still read the diff, run it, and QA it before it lands. ai-whisper does the convergence and hands you the full trail to judge fast.
 
