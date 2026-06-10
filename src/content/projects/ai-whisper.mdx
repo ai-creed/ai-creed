@@ -12,15 +12,15 @@ features:
   - "role-agnostic — workflows assign the roles (today: implementer + reviewer)"
   - "autonomous loops gated by an llm evaluator"
   - "pausable, resumable runs — pause a healthy run mid-flight, recover a stuck one, don't restart"
-  - "real mounted claude + codex sessions as the source of truth"
+  - "real mounted claude / codex / ezio sessions as the source of truth"
 ---
 import Features from "~/components/Features.astro";
 
-> v0.3.0 — open source, on npm, actively used personally.
+> v0.5.5 — open source, on npm, actively used personally.
 
 ## what it does
 
-ai-whisper pairs two coding agents — Claude and Codex today, provider-agnostic by design — in your terminal. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop, complex-bug-fixing).
+ai-whisper pairs two coding agents in your terminal — mount any two of Claude, Codex, and [ezio](/projects/ai-ezio), provider-agnostic by design. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop, complex-bug-fixing).
 
 ## why
 

@@ -1,6 +1,6 @@
 ---
 name: "ai-14all"
-tagline: "terminal-first shell for ai coding agents, session-per-worktree"
+tagline: "mission-control desktop app for running ai coding agents in parallel across git worktrees"
 status: "stable"
 order: 1
 repo: "https://github.com/ai-creed/ai-14all"
@@ -11,9 +11,9 @@ install: |
   pnpm install
   pnpm dev
 features:
-  - "git worktree session flow — one active worktree, fast switching"
+  - "session-per-worktree isolation — each agent gets its own branch, worktree, and terminal; parallel agents never collide"
   - "embedded pty terminals per worktree (node-pty + xterm)"
-  - "monaco-powered read-only file view and lightweight diff review"
+  - "monaco-powered file view, lightweight diff review, and Cmd+T symbol search with go-to-definition"
   - "multi-workspace fast switching with persisted restore"
   - "instant inline code review — highlight any line, leave a comment, agent picks it up and fixes in place"
   - "session attention — sidebar shows which agent needs you, with [claude]/[codex] badges and the task each one was given"
@@ -23,7 +23,7 @@ import Features from "~/components/Features.astro";
 
 ## what it does
 
-ai-14all is a terminal-first Electron shell for AI coding agents. It keeps the active worktree, shell sessions, code inspection, and lightweight git review in one window without turning into a full IDE.
+ai-14all is a mission-control desktop app for running AI coding agents in parallel across Git worktrees. Every session is pinned to its own worktree, branch, and terminal — fan a task out to Claude, Codex, and more at once, each isolated in its own checkout, see which agent needs you at a glance, and review their diffs inline without leaving for a full IDE.
 
 ## why
 
@@ -56,7 +56,7 @@ Requirements: macOS on Apple Silicon (arm64). The app checks for updates on laun
 ## requirements
 
 - macOS on Apple Silicon (arm64)
-- Node 22+, pnpm, git
+- Node 24+, pnpm, git
 - a local git repository with worktrees to drive the session flow
 
 ## known limits

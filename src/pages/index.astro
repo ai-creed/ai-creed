@@ -8,12 +8,14 @@ import { SITE_CONTACT_EMAIL } from "~/consts";
 const projects = (await getCollection("projects")).sort(
 	(a, b) => a.data.order - b.data.order,
 );
+const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+const countWord = NUMBER_WORDS[projects.length] ?? String(projects.length);
 ---
 <Base title="ai-creed — local-first ai dev tooling">
 	<section class="hero container">
 		<PromptTitle text="local-first ai dev tooling" />
 		<p class="blurb subtitle">
-			five local-first tools. one conviction: the agent works for you.
+			{countWord} local-first tools. one conviction: the agent works for you.
 		</p>
 	</section>
 

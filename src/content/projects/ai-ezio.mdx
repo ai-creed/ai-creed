@@ -1,0 +1,48 @@
+---
+name: "ai-ezio"
+tagline: "hax-derived, workflow-native coding agent and generic mcp host for the ai-* ecosystem"
+status: "public"
+order: 6
+wip: true
+repo: "https://github.com/ai-creed/ai-ezio"
+install: |
+  npm i -g ai-ezio
+features:
+  - "fast, small terminal coding agent — hax's c engine kept headless"
+  - "explicit machine protocol over fds — no tui scraping for mounted automation"
+  - "generic mcp host — the model calls any configured stdio mcp server live, mid-turn"
+  - "first-class ai-whisper agent — mounts as implementer or reviewer in workflows"
+  - "context compaction and session recording built in"
+  - "one install, hax binary embedded — macos and linux via npm prebuilts"
+---
+import Features from "~/components/Features.astro";
+
+> v0.2.0-beta.0 — early beta, on npm.
+
+## what it does
+
+ai-ezio is a coding agent derived from [hax](https://github.com/OleksandrChekhovskyi/hax) — kept fast and small — wrapped in a TypeScript harness that makes it machine-controllable. It keeps hax's C engine headless and speaks an explicit protocol over file descriptors, so the rest of the ecosystem can drive it without scraping a terminal UI. It is also a generic MCP host: the model can call any configured MCP server mid-turn.
+
+## why
+
+The ai-* workflows need an agent they can mount, drive, and trust — one with explicit turn boundaries and handback text instead of fragile TUI parsing. ezio keeps hax's strengths as a terminal coding assistant while adding the workflow-native behavior mounted collaboration requires.
+
+<Features list={frontmatter.features} />
+
+## the hybrid
+
+```text
+hax      = c engine — streaming, providers, tool calls
+ai-ezio  = ts harness — protocol, mcp host, session recording, cli
+```
+
+The C engine stays minimal and fast; the TypeScript side owns the protocol, the MCP host, and the integration contract. ai-ezio is a downstream fork: [hax](https://github.com/OleksandrChekhovskyi/hax) is created and authored by [Oleksandr Chekhovskyi](https://github.com/OleksandrChekhovskyi) — its authorship and lineage are kept explicit in the project's `NOTICE` and `UPSTREAM.md`.
+
+## mcp host
+
+ezio is a generic MCP host. The model calls configured stdio MCP servers live, mid-turn, under an `allow / deny / confirm` policy, with tools namespaced per server. [ai-cortex](/projects/ai-cortex) is the first-class memory and context server it pairs with.
+
+## in the ecosystem
+
+- **[ai-whisper](/projects/ai-whisper)** — ezio is a first-class mountable agent type; it can take the implementer or reviewer role in spec-driven-development, ralph-loop, and complex-bug-fixing runs.
+- **[ai-cortex](/projects/ai-cortex)** — mounted as an MCP server for project context and memory.
