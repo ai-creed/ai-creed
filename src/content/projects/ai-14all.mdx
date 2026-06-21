@@ -7,19 +7,20 @@ repo: "https://github.com/ai-creed/ai-14all"
 download: "https://github.com/ai-creed/ai-14all/releases/download/v0.9.3/ai-14all-0.9.3-arm64.dmg"
 downloadWindows: "https://github.com/ai-creed/ai-14all/releases/download/v0.9.3/ai-14all-0.9.3-x64-Setup.exe"
 install: |
-  git clone git@github.com:ai-creed/ai-14all.git
-  cd ai-14all
-  pnpm install
-  pnpm dev
+    git clone git@github.com:ai-creed/ai-14all.git
+    cd ai-14all
+    pnpm install
+    pnpm dev
 features:
-  - "session-per-worktree isolation — each agent gets its own branch, worktree, and terminal; parallel agents never collide"
-  - "embedded pty terminals per worktree (node-pty + xterm)"
-  - "monaco-powered file view, lightweight diff review, and Cmd+T symbol search with go-to-definition"
-  - "multi-workspace fast switching with persisted restore"
-  - "instant inline code review — highlight any line, leave a comment, agent picks it up and fixes in place"
-  - "session attention — sidebar shows which agent needs you, with [claude]/[codex] badges and the task each one was given"
+    - "session-per-worktree isolation — each agent gets its own branch, worktree, and terminal; parallel agents never collide"
+    - "embedded pty terminals per worktree (node-pty + xterm)"
+    - "monaco-powered file view, lightweight diff review, and Cmd+T symbol search with go-to-definition"
+    - "multi-workspace fast switching with persisted restore"
+    - "instant inline code review — highlight any line, leave a comment, agent picks it up and fixes in place"
+    - "session attention — sidebar shows which agent needs you, with [claude]/[codex] badges and the task each one was given"
 screenshot: "./ai-14all.png"
 ---
+
 import Features from "~/components/Features.astro";
 
 ## what it does
@@ -37,7 +38,14 @@ Agent-assisted work spreads across parallel worktrees. Juggling multiple shells,
 Reviewing agent output usually means context-switching to GitHub, leaving line comments, waiting for the agent to read them back. 14all collapses that loop into the editor itself.
 
 <div style="margin: var(--s-4) 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
-  <video src="/ai-14all/inline-comment-demo.mp4" autoplay muted loop playsinline style="display: block; width: 100%; height: auto;" />
+	<video
+		src="/ai-14all/inline-comment-demo.mp4"
+		autoplay
+		muted
+		loop
+		playsinline
+		style="display: block; width: 100%; height: auto;"
+	/>
 </div>
 
 Highlight any line in the diff view, drop a comment inline, and the agent picks it up on its next turn — no PR round-trip, no copy-paste, no losing the spot in the file. Comments stay anchored to the code as the agent rewrites it.

@@ -18,10 +18,9 @@ const { project } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 
-const repoHost = data.repo
-	? new URL(data.repo).host + new URL(data.repo).pathname
-	: "";
+const repoHost = data.repo ? new URL(data.repo).host + new URL(data.repo).pathname : "";
 ---
+
 <Base title={`${data.name} — ai-creed`} description={data.tagline}>
 	<article class="container">
 		<p class="back">
@@ -32,14 +31,20 @@ const repoHost = data.repo
 			<div class="title-row">
 				<h1 class="name">{data.name}</h1>
 				<div class="head-actions">
-					{data.download && (
-						<a class="download-cta" href={data.download} download>
-							↓ {data.downloadWindows ? "macOS" : "download"}
-						</a>
-					)}
-					{data.downloadWindows && (
-						<a class="download-cta" href={data.downloadWindows} download>↓ Windows</a>
-					)}
+					{
+						data.download && (
+							<a class="download-cta" href={data.download} download>
+								↓ {data.downloadWindows ? "macOS" : "download"}
+							</a>
+						)
+					}
+					{
+						data.downloadWindows && (
+							<a class="download-cta" href={data.downloadWindows} download>
+								↓ Windows
+							</a>
+						)
+					}
 					<StatusChip status={data.status} />
 				</div>
 			</div>
@@ -48,40 +53,48 @@ const repoHost = data.repo
 
 		{data.wip && <WipNotice />}
 
-		{data.video && (
-			<div class="demo">
-				<video src={data.video} autoplay muted loop playsinline />
-			</div>
-		)}
-		{data.screenshot && (
-			<div class="demo">
-				<Image
-					src={data.screenshot}
-					alt={`${data.name} screenshot`}
-					widths={[480, 800, 1200]}
-					sizes="(max-width: 720px) 100vw, 720px"
-				/>
-			</div>
-		)}
+		{
+			data.video && (
+				<div class="demo">
+					<video src={data.video} autoplay muted loop playsinline />
+				</div>
+			)
+		}
+		{
+			data.screenshot && (
+				<div class="demo">
+					<Image
+						src={data.screenshot}
+						alt={`${data.name} screenshot`}
+						widths={[480, 800, 1200]}
+						sizes="(max-width: 720px) 100vw, 720px"
+					/>
+				</div>
+			)
+		}
 
 		<section class="body">
 			<Content />
 		</section>
 
-		{data.status !== "private" && data.install && (
-			<section class="install">
-				<h2># install</h2>
-				<CodeBlock code={data.install} lang="bash" />
-			</section>
-		)}
+		{
+			data.status !== "private" && data.install && (
+				<section class="install">
+					<h2># install</h2>
+					<CodeBlock code={data.install} lang="bash" />
+				</section>
+			)
+		}
 
-		{data.status !== "private" && data.repo && (
-			<footer class="cta">
-				<p>
-					repo: <a href={data.repo}>{repoHost}</a> →
-				</p>
-			</footer>
-		)}
+		{
+			data.status !== "private" && data.repo && (
+				<footer class="cta">
+					<p>
+						repo: <a href={data.repo}>{repoHost}</a> →
+					</p>
+				</footer>
+			)
+		}
 	</article>
 </Base>
 
@@ -91,15 +104,22 @@ const repoHost = data.repo
 		font-size: var(--fs-sm);
 		color: var(--fg-dim);
 	}
-	.head { margin-bottom: var(--s-6); }
+	.head {
+		margin-bottom: var(--s-6);
+	}
 	.title-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--s-4);
 	}
-	.name { font-size: var(--fs-h1); font-weight: 600; }
-	.tagline { margin-top: var(--s-2); }
+	.name {
+		font-size: var(--fs-h1);
+		font-weight: 600;
+	}
+	.tagline {
+		margin-top: var(--s-2);
+	}
 
 	.head-actions {
 		display: flex;
@@ -127,7 +147,8 @@ const repoHost = data.repo
 		border-radius: var(--radius);
 		overflow: hidden;
 	}
-	.demo img, .demo video {
+	.demo img,
+	.demo video {
 		display: block;
 		width: 100%;
 		height: auto;
@@ -142,8 +163,12 @@ const repoHost = data.repo
 		margin-bottom: var(--s-3);
 	}
 
-	.body :global(p) { margin-bottom: var(--s-3); }
-	.body :global(pre) { margin: var(--s-3) 0; }
+	.body :global(p) {
+		margin-bottom: var(--s-3);
+	}
+	.body :global(pre) {
+		margin: var(--s-3) 0;
+	}
 	.body :global(blockquote) {
 		margin: var(--s-3) 0;
 		padding-left: var(--s-3);
