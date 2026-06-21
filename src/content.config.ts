@@ -15,6 +15,7 @@ const projects = defineCollection({
 			order: z.number(),
 			repo: z.string().optional(),
 			download: z.string().url().optional(),
+			downloadWindows: z.string().url().optional(),
 			install: z.string().optional(),
 			features: z.array(z.string()).min(3).max(6),
 			screenshot: image().optional(),

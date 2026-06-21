@@ -33,7 +33,12 @@ const repoHost = data.repo
 				<h1 class="name">{data.name}</h1>
 				<div class="head-actions">
 					{data.download && (
-						<a class="download-cta" href={data.download} download>↓ download</a>
+						<a class="download-cta" href={data.download} download>
+							↓ {data.downloadWindows ? "macOS" : "download"}
+						</a>
+					)}
+					{data.downloadWindows && (
+						<a class="download-cta" href={data.downloadWindows} download>↓ Windows</a>
 					)}
 					<StatusChip status={data.status} />
 				</div>
