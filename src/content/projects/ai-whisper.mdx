@@ -7,7 +7,7 @@ repo: "https://github.com/ai-creed/ai-whisper"
 install: |
   npm install -g ai-whisper
 features:
-  - "structured workflows — spec-driven-development, ralph-loop, complex-bug-fixing"
+  - "structured workflows — spec-driven-development, ralph-loop, complex-bug-fixing, deliberation"
   - "single-baton relay — one owner at a time, not a swarm"
   - "role-agnostic — workflows assign the roles (today: implementer + reviewer)"
   - "autonomous loops gated by an llm evaluator"
@@ -16,11 +16,11 @@ features:
 ---
 import Features from "~/components/Features.astro";
 
-> v0.5.5 — open source, on npm, actively used personally.
+> v0.7.0 — open source, on npm, actively used personally.
 
 ## what it does
 
-ai-whisper pairs two coding agents in your terminal — mount any two of Claude, Codex, and [ezio](/projects/ai-ezio), provider-agnostic by design. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop, complex-bug-fixing).
+ai-whisper pairs two coding agents in your terminal — mount any two of Claude, Codex, and [ezio](/projects/ai-ezio), provider-agnostic by design. They share a single baton — one owns the turn at a time — and structured workflows drive the collaboration, with an evaluator gating each round. The relay isn't tied to any one arrangement; today's workflows pair an implementer and a reviewer (spec-driven-development, ralph-loop, complex-bug-fixing, deliberation).
 
 ## why
 
@@ -37,6 +37,7 @@ A workflow is a structured loop — phases, gates, round budgets — not a long 
 - **spec-driven-development** — when you can describe "done" up front. Sharpens a spec into a plan, then executes it under review.
 - **ralph-loop** — when you can't. Grinds an open-ended goal chunk-by-chunk, a reviewer gating each one.
 - **complex-bug-fixing** — when a bug is reported but the root cause isn't. Three phases (diagnosis → fix-and-verify → post-mortem), with the implementer required to reproduce the bug — a committed failing test, not speculation from reading code.
+- **deliberation** — when the idea is still fuzzy and you can't describe "done" yet. An Explorer and Challenger map the space (objectives → approaches → tradeoffs → synthesis), then hand back a committed findings doc to take into brainstorming or SDD.
 
 <br />
 
