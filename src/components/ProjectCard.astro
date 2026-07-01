@@ -5,7 +5,7 @@ interface Props {
 	slug: string;
 	name: string;
 	tagline: string;
-	status: "public" | "private" | "stable";
+	status: "public" | "private" | "stable" | "archived";
 	wip?: boolean;
 }
 const { slug, name, tagline, status, wip } = Astro.props;

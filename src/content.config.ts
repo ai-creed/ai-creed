@@ -12,7 +12,7 @@ const projects = defineCollection({
 			.object({
 				name: z.string(),
 				tagline: z.string(),
-				status: z.enum(["public", "private", "stable"]),
+				status: z.enum(["public", "private", "stable", "archived"]),
 				order: z.number(),
 				repo: z.string().optional(),
 				download: z.string().url().optional(),
