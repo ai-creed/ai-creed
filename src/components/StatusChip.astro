@@ -1,9 +1,9 @@
 ---
 interface Props {
-	status: "public" | "private" | "stable";
+	status: "public" | "private" | "stable" | "archived";
 }
 const { status } = Astro.props;
-const label = status === "public" ? "public" : status === "stable" ? "stable" : "private";
+const label = status;
 ---
 <span class:list={["chip", status]}>[{label}]</span>
 
@@ -19,4 +19,5 @@ const label = status === "public" ? "public" : status === "stable" ? "stable" : 
 	.chip.public { color: var(--accent); border-color: var(--accent); }
 	.chip.private { color: var(--warn); border-color: var(--warn); }
 	.chip.stable { color: var(--accent); border-color: var(--accent); }
+	.chip.archived { color: var(--fg-dim); border-color: var(--border); }
 </style>
