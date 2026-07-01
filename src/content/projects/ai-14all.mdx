@@ -12,13 +12,13 @@ install: |
     pnpm install
     pnpm dev
 features:
-    - "session-per-worktree isolation — each agent gets its own branch, worktree, and terminal; parallel agents never collide"
-    - "embedded pty terminals per worktree (node-pty + xterm)"
+    - "session-per-worktree isolation — each agent gets its own branch, worktree, and embedded pty terminal; parallel agents never collide"
     - "monaco-powered file view, lightweight diff review, and Cmd+T symbol search with go-to-definition"
-    - "multi-workspace fast switching with persisted restore"
     - "instant inline code review — highlight any line, leave a comment, agent picks it up and fixes in place"
+    - "built-in integrations — ai-cortex for codebase indexing and persistent memory, ai-whisper for autonomous multi-step workflows"
     - "session attention — sidebar shows which agent needs you, with [claude]/[codex] badges and the task each one was given"
-screenshot: "./ai-14all.png"
+    - "notional usage-cost telemetry — estimated per-session token and cost tracking across agents"
+video: "/ai-14all/hero-demo.mp4"
 ---
 
 import Features from "~/components/Features.astro";
@@ -39,7 +39,7 @@ Reviewing agent output usually means context-switching to GitHub, leaving line c
 
 <div style="margin: var(--s-4) 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
 	<video
-		src="/ai-14all/inline-comment-demo.mp4"
+		src="/ai-14all/inline-review-demo.mp4"
 		autoplay
 		muted
 		loop

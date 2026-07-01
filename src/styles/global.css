@@ -28,7 +28,9 @@
 	--s-12: 48px;
 
 	/* layout */
-	--max-w:  720px;
+	--max-w:      720px;
+	--max-w-wide: 1120px;
+	--page-max-w: var(--max-w);
 	--radius: 2px;
 
 	/* transitions */
@@ -85,9 +87,16 @@ pre {
 }
 
 .container {
-	max-width: var(--max-w);
+	max-width: var(--page-max-w);
 	margin: 0 auto;
 	padding: 0 var(--s-4);
+}
+
+/* Project pages opt into a wider column by adding the wide class to the
+   body element; the header, page content, and footer all follow because
+   they share .container and inherit --page-max-w. */
+body.wide {
+	--page-max-w: var(--max-w-wide);
 }
 
 .subtitle { color: var(--fg-dim); }
