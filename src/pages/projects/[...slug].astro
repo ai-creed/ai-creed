@@ -21,7 +21,7 @@ const { Content } = await render(project);
 const repoHost = data.repo ? new URL(data.repo).host + new URL(data.repo).pathname : "";
 ---
 
-<Base title={`${data.name} — ai-creed`} description={data.tagline}>
+<Base title={`${data.name} — ai-creed`} description={data.tagline} wide>
 	<article class="container">
 		<p class="back">
 			<a href="/#projects">← projects</a>
