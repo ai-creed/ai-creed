@@ -1,17 +1,17 @@
-version: 1.3.0
-releaseDate: '2026-07-10T03:34:38.034Z'
-path: https://github.com/ai-creed/ai-14all/releases/download/v1.3.0/ai-14all-1.3.0-universal.dmg
-sha512: ejl6fP+XiDINnNSR2EqGTHm/MDUi5HMPcQM7EkEkAFchk7Ygfa4lYTFKIi9jUqVF7JsCLkALgo5Rpj/U/Cct4A==
+version: 1.4.0
+releaseDate: '2026-07-13T01:16:52.663Z'
+path: https://github.com/ai-creed/ai-14all/releases/download/v1.4.0/ai-14all-1.4.0-universal.dmg
+sha512: l9eM6OorduLETT1pBql8bFvTGEJSsyOl2L6ixwcPFH/XuQ+864Ms0BpvO9Ka7km+/dgauyryNGtrUgN/alusQA==
 files:
-  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.3.0/ai-14all-1.3.0-arm64-mac.zip
-    sha512: UEY3cxOxPVpS77SfZ8QpLkRP2OZ1dBEHDpUbktlG20sVG1sUKGThgGWWogBB8u2GWh73/gpeXo6FVFHulVm+nA==
-    size: 149967603
-  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.3.0/ai-14all-1.3.0-universal-mac.zip
-    sha512: q8xgy4kOQYshi4W3bjmiy+Wsyih5CImEpZ6juQf9AkylOZ6dQhZbPhc6c0LOeC8IJsLVhUy5xaJ83WsqccXhnQ==
-    size: 250044691
-  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.3.0/ai-14all-1.3.0-arm64.dmg
-    sha512: GINIWmoEoESWqDmgoF3X4kyJswGNpD+PJAJ9COstGVqyKi0c6OnJ5D9QMrDZXjLXhxO8FnXpHRUdJovqfP3WQg==
-    size: 150956476
-  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.3.0/ai-14all-1.3.0-universal.dmg
-    sha512: ejl6fP+XiDINnNSR2EqGTHm/MDUi5HMPcQM7EkEkAFchk7Ygfa4lYTFKIi9jUqVF7JsCLkALgo5Rpj/U/Cct4A==
-    size: 251062582
+  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.4.0/ai-14all-1.4.0-arm64-mac.zip
+    sha512: eYik1/nemjFqPWO9SDi1bMo+IrjjL/Ab/rpZH51jpLeBCCH/sJgrRPwItPKx1M5EblnX3Fp5IULKYLTi+t1EtQ==
+    size: 150186904
+  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.4.0/ai-14all-1.4.0-universal-mac.zip
+    sha512: I/WERud7lKEBhr4liVi8UN3Qi/pE23Tk67Y9vEY60AOwBMDRBbbyJy8v2HUebstyPCnPbJUXsbLSvttQSVmK+g==
+    size: 250256965
+  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.4.0/ai-14all-1.4.0-arm64.dmg
+    sha512: pSkFJDnZHH7fGuRAU9RYryOXa4303WXixF6PCsPa6lOB9UXGczw3WTqw3TWFdID2A981xTPbViYufHWv4AeoCQ==
+    size: 151133153
+  - url: https://github.com/ai-creed/ai-14all/releases/download/v1.4.0/ai-14all-1.4.0-universal.dmg
+    sha512: l9eM6OorduLETT1pBql8bFvTGEJSsyOl2L6ixwcPFH/XuQ+864Ms0BpvO9Ka7km+/dgauyryNGtrUgN/alusQA==
+    size: 251304068
