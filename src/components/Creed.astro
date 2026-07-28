@@ -1,0 +1,71 @@
+---
+const TENETS = [
+	"your machine remains the authority",
+	"you stay the gatekeeper at meaningful decisions",
+	"the pieces compose without becoming a black box",
+	"code and systems you can read end-to-end",
+];
+---
+
+<section id="creed" class="creed container">
+	<p class="eyebrow">the creed</p>
+	<h2 class="display">the agent works for you. never the other way around.</h2>
+	<ol class="tenets">
+		{
+			TENETS.map((t, i) => (
+				<li>
+					<span class="num">0{i + 1}</span>
+					<span class="t">{t}</span>
+				</li>
+			))
+		}
+	</ol>
+</section>
+
+<style>
+	.creed {
+		padding: var(--s-12) var(--s-4);
+	}
+	.eyebrow {
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
+		color: var(--accent);
+	}
+	.display {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: clamp(26px, 4vw, 40px);
+		line-height: 1.15;
+		margin-top: var(--s-3);
+		max-width: 22ch;
+		text-wrap: balance;
+	}
+	.tenets {
+		list-style: none;
+		padding: 0;
+		margin: var(--s-8) 0 0;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--s-4);
+	}
+	.tenets li {
+		display: flex;
+		gap: var(--s-3);
+		align-items: baseline;
+		border-top: 1px solid var(--border);
+		padding-top: var(--s-3);
+	}
+	.num {
+		color: var(--accent);
+		font-weight: 600;
+		font-size: var(--fs-xs);
+	}
+	.t {
+		color: var(--fg);
+	}
+	@media (max-width: 519px) {
+		.tenets {
+			grid-template-columns: 1fr;
+		} /* one column at 320px (spec §6) */
+	}
+</style>
