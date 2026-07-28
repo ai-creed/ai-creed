@@ -33,6 +33,9 @@ importers:
             "@typescript-eslint/parser":
                 specifier: ^8.58.2
                 version: 8.62.1(eslint@10.6.0)(typescript@5.9.3)
+            axe-core:
+                specifier: 4.12.1
+                version: 4.12.1
             eslint:
                 specifier: ^10.2.1
                 version: 10.6.0
@@ -1445,6 +1448,13 @@ packages:
         engines: { node: ^18.18.0 || >=20.9.0 }
         peerDependencies:
             "@astrojs/compiler": ">=0.27.0"
+
+    axe-core@4.12.1:
+        resolution:
+            {
+                integrity: sha512-s7iGf5GaVMxEG0ENN9x+xTr7GFZCb1ZP/1uATUpCEK2X78nDB3RwbtFCo9pGAf9ru+VwoQ464DkaLEeRM08wJA==,
+            }
+        engines: { node: ">=4" }
 
     axobject-query@4.1.0:
         resolution:
@@ -5027,6 +5037,8 @@ snapshots:
         dependencies:
             "@astrojs/compiler": 3.0.1
             synckit: 0.11.13
+
+    axe-core@4.12.1: {}
 
     axobject-query@4.1.0: {}
 
