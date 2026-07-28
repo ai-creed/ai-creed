@@ -821,7 +821,7 @@ Leave `## requirements` and `## known limits` as they are, and leave the inline-
 - [ ] **Step 8: Green verification (the task's single gate)**
 
 Run: `pnpm check && pnpm lint && pnpm build`
-Expected: all PASS, with `[build] flagship contract ok (3)` in the log. Then confirm the contract still bites: temporarily change `featured: true` to `featured: false` in `ai-xavier.mdx`, run `pnpm build`, expect FAIL with `flagship contract: featured set…`; revert the line.
+Expected: all PASS, with `[build] flagship contract ok (3)` in the log. Then confirm the LOADER still bites (the empty-set red in Step 4 already exercised it once): temporarily change ai-xavier's `rank: 2` to `rank: 3`, run `pnpm build`, expect FAIL with `flagship contract: ai-xavier rank must be 2, got 3`; revert the line. (A `featured: false` mutation would fail earlier, at the zod `z.literal(true)` schema layer — valid, but it would not prove the loader.)
 
 Run: `grep -rn "releases/download" src/content && echo LEAK || echo clean`
 Expected: `clean`.
@@ -2799,7 +2799,7 @@ Both scripts parse built HTML with regexes; that is acceptable because they only
 **Interfaces:**
 
 - Consumes: `dist/` from `pnpm build`.
-- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus two hard gates: any `<script>` tag on the built homepage fails, and any external automatically fetched resource — image, stylesheet, preload, icon, font, or `srcset` candidate — fails rather than being skipped; relative URLs are resolved against their containing document or stylesheet, never dropped). CI (Task 21) runs both.
+- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus two hard gates: any `<script>` tag on the built homepage fails, and any external automatically fetched resource — image, stylesheet, preload, icon, font, or `srcset` candidate — fails rather than being skipped; relative URLs are resolved against their containing document or stylesheet, never dropped; and CSS is traversed recursively, quoted `@import` chains included, so an imported stylesheet's own resources are counted). CI (Task 21) runs both.
 
 - [ ] **Step 1: Write `scripts/check-media.mjs`**
 
@@ -2850,6 +2850,7 @@ console.log(`check:media ok — ${pages.length} pages scanned`);
 // upper bound even if that rule is ever relaxed. External (cross-origin) auto-
 // fetched resources cannot be measured from dist, so they are forbidden outright.
 // Relative URLs resolve against the referencing document or stylesheet.
+// CSS is traversed recursively, including quoted @import chains.
 import { readFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
@@ -2877,6 +2878,8 @@ for (const [, rel, href] of html.matchAll(/<link\b[^>]*rel="([^"]+)"[^>]*href="(
 for (const [, href, rel] of html.matchAll(/<link\b[^>]*href="([^"]+)"[^>]*rel="([^"]+)"[^>]*>/gi)) {
 	if (/stylesheet|preload|icon|apple-touch-icon/i.test(rel)) take(href);
 }
+// an image's fallback src counts IN ADDITION to its largest srcset candidate —
+// intentionally conservative; the measurement stays an upper bound
 for (const [, src] of html.matchAll(/<img\b[^>]*src="([^"]+)"/gi)) take(src);
 for (const [, poster] of html.matchAll(/<video\b[^>]*poster="([^"]+)"/gi)) take(poster);
 const scriptTags = [...html.matchAll(/<script\b[^>]*>/gi)].map((m) => m[0]);
@@ -2913,13 +2916,28 @@ for (const [, srcset] of html.matchAll(/srcset="([^"]+)"/gi)) {
 }
 if (existsSync("dist/favicon.ico")) take("/favicon.ico");
 
-// @font-face assets are fetched automatically too — pull url(...) refs from CSS files.
-const cssFiles = [...urls].filter((u) => u.endsWith(".css"));
-for (const css of cssFiles) {
+// @font-face and @import assets are fetched automatically too — traverse CSS
+// RECURSIVELY: both url(...) syntax and quoted @import "…" forms are parsed;
+// newly discovered local stylesheets join the worklist, and external imports
+// hit the same forbidden-externals gate as everything else.
+const cssQueue = [...urls].filter((u) => u.endsWith(".css"));
+const cssSeen = new Set(cssQueue);
+while (cssQueue.length) {
+	const css = cssQueue.shift();
 	const p = `dist${css}`;
-	if (!existsSync(p)) continue;
-	for (const [, , u] of readFileSync(p, "utf8").matchAll(/url\((["']?)([^)"']+)\1\)/g)) {
-		take(u, css); // relative font/image refs resolve against the stylesheet's path
+	if (!existsSync(p)) continue; // reported as missing by the accounting loop
+	const text = readFileSync(p, "utf8");
+	for (const [, , u] of text.matchAll(/url\((["']?)([^)"']+)\1\)/g)) {
+		take(u, css); // relative refs resolve against the stylesheet's path
+	}
+	for (const [, , u] of text.matchAll(/@import\s+(["'])([^"']+)\1/g)) {
+		take(u, css); // quoted @import without url() — same classification
+	}
+	for (const u of urls) {
+		if (u.endsWith(".css") && !cssSeen.has(u)) {
+			cssSeen.add(u);
+			cssQueue.push(u);
+		}
 	}
 }
 
@@ -2975,7 +2993,7 @@ Add to `package.json` scripts:
 Run: `pnpm build && pnpm check:media && pnpm check:budget`
 Expected: both pass. If `check:budget` exceeds the ceiling, the fix order is: confirm the font file is the single 600-weight subset, then trim hero CSS — never raise `LIMIT`.
 
-Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; rebuild. Finally `printf '<img src="https://example.com/big.jpg" alt="" />' >> dist/index.html && pnpm check:budget` must fail on the external-resource gate; the same trick with `<img src="big.jpg" alt="" />` (relative URL) must fail as missing `/big.jpg`, and with `<img srcset="https://cdn.example.com/x.jpg 1x" alt="" />` must fail on the external gate — proving relative resolution and per-candidate srcset classification. Run `pnpm build` again to clean up.
+Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; rebuild. Finally `printf '<img src="https://example.com/big.jpg" alt="" />' >> dist/index.html && pnpm check:budget` must fail on the external-resource gate; the same trick with `<img src="big.jpg" alt="" />` (relative URL) must fail as missing `/big.jpg`, and with `<img srcset="https://cdn.example.com/x.jpg 1x" alt="" />` must fail on the external gate — proving relative resolution and per-candidate srcset classification. For the CSS layer: `printf '@import "/evil-2.css";' > dist/evil-1.css && printf '@import "https://cdn.example.com/large.css";' > dist/evil-2.css && printf '<link rel="stylesheet" href="/evil-1.css">' >> dist/index.html && pnpm check:budget` must fail on the external gate — one fixture proving both quoted-`@import` parsing and recursive traversal (evil-1 → evil-2 → external). Run `pnpm build` again to clean up.
 
 ```bash
 git add scripts/check-media.mjs scripts/check-homepage-budget.mjs package.json
@@ -2994,7 +3012,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 **Interfaces:**
 
 - Consumes: `src/data/ai14all-downloads.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; and every BUILT ai-14all release-page link must equal a module-derived destination (`releasePageUrl` or a recently-shipped entry), whatever source expression produced it.
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so split constructions like `"/releases/" + "latest"` collapse into the forbidden fragment and fail; and every BUILT ai-14all release-page link must equal a module-derived destination (`releasePageUrl` or a recently-shipped entry), whatever source expression produced it. The normalized-source ban plus the rendered allowlist together form the import allowlist: no non-module source can carry or assemble a release destination, so a page that renders one necessarily imported it from the typed modules.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -3105,15 +3123,21 @@ const sources = [];
 for (const file of sources) {
 	if (ALLOWED_SOURCES.has(file)) continue;
 	const text = readFileSync(file, "utf8");
-	if (text.includes("/releases/download/")) {
+	// Split-construction defense: strip quotes, backticks, plus signs, commas,
+	// brackets, and whitespace, so `"/releases/" + "latest"` — or a .join() of
+	// pieces — collapses back into the forbidden fragment before matching. URL
+	// rules run on this normalized text. Together with the rendered-output
+	// allowlist below this IS the import allowlist: no non-module source can
+	// carry or assemble a release destination, so any page that renders one
+	// must have imported it from the typed modules.
+	const squashed = text.replace(/["'`+,[\]\s]/g, "");
+	if (squashed.includes("/releases/download/")) {
 		errors.push(`hand-written download URL outside the data modules: ${file}`);
 	}
-	if (text.includes("github.com/ai-creed/ai-14all/releases")) {
+	if (squashed.includes("github.com/ai-creed/ai-14all/releases")) {
 		errors.push(`hand-written ai-14all release URL outside the data modules: ${file}`);
 	}
-	// catches CONSTRUCTED urls too — the path fragment alone is forbidden outside
-	// the modules, so gluing a github root onto "/releases/latest" still fails
-	if (/\/releases\/(latest|tag\/)/.test(text)) {
+	if (/\/releases\/(latest|tag\/)/.test(squashed)) {
 		errors.push(`hand-written release path outside the data modules: ${file}`);
 	}
 	if (/ai-14all[-\s]v?\d+\.\d+\.\d+/.test(text)) {
@@ -3142,7 +3166,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites six ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean.
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites six ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it).
 
 ```bash
 git add scripts/check-downloads.mjs package.json
@@ -3246,6 +3270,10 @@ for (const viewport of VIEWPORTS) {
 			}
 		}
 		if (viewport.width === 390) {
+			// open every <details> first so mobile-menu links are measured too
+			await page.evaluate(() => {
+				for (const d of document.querySelectorAll("details")) d.open = true;
+			});
 			const undersized = await page.evaluate(() => {
 				const bad = [];
 				const targets = document.querySelectorAll(
