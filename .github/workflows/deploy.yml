@@ -41,8 +41,31 @@ jobs:
             - name: Lint
               run: pnpm run lint
 
+            - name: Format check
+              run: pnpm run format:check
+
             - name: Build
               run: pnpm run build
+
+            - name: Media guard
+              run: pnpm run check:media
+
+            - name: Budget guard
+              run: pnpm run check:budget
+
+            - name: Downloads guard
+              run: pnpm run check:downloads
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Install Playwright chromium
+              run: pnpm exec playwright install --with-deps chromium
+
+            - name: Accessibility guard
+              run: pnpm run check:a11y
+
+            - name: Lighthouse
+              run: pnpm run lighthouse
 
             - name: Upload artifact
               if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
