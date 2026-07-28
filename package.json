@@ -12,6 +12,7 @@
 		"check": "astro check",
 		"check:media": "node scripts/check-media.mjs",
 		"check:budget": "node scripts/check-homepage-budget.mjs",
+		"check:downloads": "node --experimental-strip-types scripts/check-downloads.mjs",
 		"format": "prettier -w .",
 		"format:check": "prettier -c .",
 		"lint": "eslint src",
