@@ -1,0 +1,35 @@
+---
+import type { Availability } from "~/lib/flagships";
+
+interface Props {
+	availability: Availability;
+}
+const { availability } = Astro.props;
+const cls = { shipping: "done", "coming soon": "waiting", "early access": "ready" }[availability];
+---
+
+<span class:list={["chip", cls]}>[{availability}]</span>
+
+<style>
+	.chip {
+		display: inline-block;
+		font-size: var(--fs-xs);
+		padding: 2px var(--s-2);
+		border-radius: var(--radius);
+		border: 1px solid;
+		line-height: 1.2;
+		white-space: nowrap;
+	}
+	.chip.done {
+		color: var(--status-done);
+		border-color: var(--status-done);
+	}
+	.chip.waiting {
+		color: var(--status-waiting);
+		border-color: var(--status-waiting);
+	}
+	.chip.ready {
+		color: var(--status-ready);
+		border-color: var(--status-ready);
+	}
+</style>
