@@ -15,7 +15,9 @@ Copied from the spec; every task's requirements implicitly include these.
 - Coral `#ff8163` is the ONLY brand/interactive hue. Coral is never a status color; status states use the separate status palette and always include text.
 - Room tints (ai-14all cool slate, ai-xavier warm taupe, ai-samantha deep plum) appear only as low-alpha washes, border tints, and product visuals — never on shared controls.
 - Hover/focus transitions are 150 ms; exactly one breathing animation exists (inside `Ai14allVisual`); `prefers-reduced-motion` kills all animation and zeroes transitions. No parallax, carousels, scroll-jacking, or scroll-triggered entrances.
-- Zero client JavaScript. Navigation uses native anchors; the mobile menu is a native `<details>`; responsive CTA variants are separate links hidden with `display: none`.
+- Zero client JavaScript. Navigation uses native anchors; the mobile menu is a native `<details>`; responsive CTA variants are separate links hidden with `display: none`. `check:budget` hard-fails on any `<script>` tag in the built homepage.
+- One shared CTA breakpoint everywhere: desktop CTA/nav variants render at ≥ 900 px, mobile variants at ≤ 899 px — the header and every section use the same `@media (max-width: 899px)` query, so no viewport width ever shows mixed modes.
+- Every non-inline interactive target is at least 44 px tall. Nav, footer, list, and action links get `min-height: 44px; display: inline-flex; align-items: center;`; only links inside prose `<p>` elements are exempt (WCAG 2.5.8 inline exception). `check:a11y` asserts this with bounding boxes at 390 px.
 - No media autoplays. Every `<video>` has `preload="none"`, a `poster`, and `controls`, and never `autoplay`. The homepage embeds no `<video>` at all.
 - Homepage initial transfer ≤ 102,400 bytes (gzip, Node `zlib` defaults) counting the document plus every automatically fetched subresource including icons and the font; only `preload="none"` media payloads are excluded.
 - Lighthouse (LHCI, default mobile simulated throttling, median of 3 runs): performance `minScore` 0.95, LCP `maxNumericValue` 1499, CLS `maxNumericValue` 0.019.
@@ -64,6 +66,7 @@ Copied from the spec; every task's requirements implicitly include these.
 
 - Modify: `src/styles/global.css`
 - Modify: `src/components/StatusChip.astro`
+- Modify: `src/components/Header.astro` (44 px targets for the legacy header kept on project/bio pages)
 - Modify: `package.json` (devDependency `@fontsource/fraunces`)
 - Create: `public/fonts/fraunces-latin-600.woff2` (copied binary)
 
@@ -214,15 +217,37 @@ In `src/components/StatusChip.astro`, replace the four `.chip.…` rules with:
 }
 ```
 
-- [ ] **Step 5: Verify**
+- [ ] **Step 5: 44 px targets in the legacy header**
+
+In `src/components/Header.astro` (still rendered on project and bio pages), replace the `.brand` and `.links a` rules with:
+
+```css
+.brand {
+	display: inline-flex;
+	gap: var(--s-2);
+	align-items: center;
+	border: none;
+	color: var(--fg);
+	min-height: 44px;
+}
+.links a {
+	border: none;
+	color: var(--fg-dim);
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+}
+```
+
+- [ ] **Step 6: Verify**
 
 Run: `pnpm check && pnpm lint && pnpm build && pnpm format:check`
 Expected: all pass. Open `pnpm preview` and confirm links/hover are coral site-wide, status chips are green/gold/grey (not coral), and `curl -s http://localhost:4321/ | grep -c fonts.googleapis` prints `0`.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/styles/global.css src/components/StatusChip.astro package.json pnpm-lock.yaml public/fonts
+git add src/styles/global.css src/components/StatusChip.astro src/components/Header.astro package.json pnpm-lock.yaml public/fonts
 git commit -m "feat(tokens): coral accent, status palette, display font, a11y baseline"
 ```
 
@@ -278,9 +303,7 @@ export const AI14ALL_DOWNLOAD_ASSETS: readonly DownloadAsset[] = Object.values(
 
 - [ ] **Step 2: Write `src/data/recently-shipped.ts`**
 
-The v1.8.2 and ai-samantha entries below are final. For the v1.8.0 entry, run
-`gh release view v1.8.0 --repo ai-creed/ai-14all --json body -q .body | head -5`
-and replace the `summary` string with a lowercase ≤ 80-char condensation of the first user-facing bullet (keep the entry if the notes are empty: summary `"v1.8.0 release"`).
+All three entries are final. The v1.8.0 summary condenses that release's public changelog headline (typing into a watched terminal from a paired phone, plus reach-from-anywhere via a self-hosted relay — published 2026-07-26); the ai-samantha entry states the shipped supervision integration.
 
 ```ts
 // Editorial proof-of-momentum entries, build-time only (spec §5.7).
@@ -302,7 +325,7 @@ export const RECENTLY_SHIPPED: readonly RecentlyShippedEntry[] = [
 	{
 		date: "2026-07-26",
 		project: "ai-14all",
-		summary: "v1.8.0 release", // replace per Step 2 instructions
+		summary: "v1.8.0 — type into a watched terminal from your phone; reach it from anywhere",
 		href: "https://github.com/ai-creed/ai-14all/releases/tag/v1.8.0",
 	},
 	{
@@ -333,9 +356,105 @@ git commit -m "feat(data): typed ai-14all downloads module and recently-shipped 
 
 ---
 
-### Task 3: Homepage schema + flagship invariant loader (red)
+### Task 3: Committed video posters
 
-The loader's invariants are the spec §7.1 build contract. This task ends RED on purpose: the three flagship MDX files don't carry `homepage` blocks yet. Task 5 turns it green.
+Playwright's bundled Chromium cannot decode the H.264 demo videos, so posters are **designed frames** rendered from token-styled HTML — consistent with the CSS/HTML product-visual language (spec §4.5, §8).
+
+**Files:**
+
+- Modify: `package.json` (devDependency `playwright`)
+- Create: `scripts/generate-posters.mjs`
+- Create (generated, committed): `public/ai-14all/hero-demo-poster.jpg`, `public/ai-14all/inline-review-demo-poster.jpg`, `public/ai-samantha/hero-demo-poster.jpg`, `public/ai-whisper/workflow-demo-poster.jpg`
+
+**Interfaces:**
+
+- Consumes: token values from Task 1 (inlined — the script is standalone HTML).
+- Produces: the four poster paths above; Tasks 4–5 reference them verbatim.
+
+- [ ] **Step 1: Install playwright and its chromium**
+
+```bash
+pnpm add -D playwright
+pnpm exec playwright install chromium
+```
+
+(pnpm's `onlyBuiltDependencies` allowlist is untouched — playwright needs no postinstall script; browsers install via the CLI.)
+
+- [ ] **Step 2: Write `scripts/generate-posters.mjs`**
+
+```js
+// Renders committed poster frames for the demo videos. Re-run after replacing a demo.
+import { chromium } from "playwright";
+
+const POSTERS = [
+	{
+		out: "public/ai-14all/hero-demo-poster.jpg",
+		eyebrow: "ai-14all",
+		title: "mission control for parallel agents",
+		tint: "147, 164, 189",
+	},
+	{
+		out: "public/ai-14all/inline-review-demo-poster.jpg",
+		eyebrow: "ai-14all",
+		title: "inline review, inside the editor",
+		tint: "147, 164, 189",
+	},
+	{
+		out: "public/ai-samantha/hero-demo-poster.jpg",
+		eyebrow: "ai-samantha",
+		title: "the orb is listening",
+		tint: "168, 120, 200",
+	},
+	{
+		out: "public/ai-whisper/workflow-demo-poster.jpg",
+		eyebrow: "ai-whisper",
+		title: "a spec-driven run, live",
+		tint: "138, 138, 138",
+	},
+];
+
+const page = ({ eyebrow, title, tint }) => `<!doctype html><html><head><style>
+	body { margin: 0; width: 1280px; height: 720px; display: grid; place-items: center;
+		background: radial-gradient(ellipse at 50% 40%, rgba(${tint}, 0.14), transparent 65%) #0d0d0d;
+		color: #e6e6e6; font-family: ui-monospace, Menlo, monospace; }
+	.frame { text-align: center; }
+	.eyebrow { color: rgba(${tint}, 0.9); font-size: 22px; letter-spacing: 0.08em; }
+	.title { font-size: 40px; font-weight: 600; margin-top: 16px; }
+	.play { margin: 40px auto 0; width: 88px; height: 88px; border: 2px solid #ff8163;
+		border-radius: 50%; display: grid; place-items: center; color: #ff8163; font-size: 30px; }
+	.hint { margin-top: 20px; color: #8a8a8a; font-size: 18px; }
+</style></head><body><div class="frame">
+	<div class="eyebrow">${eyebrow}</div>
+	<div class="title">${title}</div>
+	<div class="play">▶</div>
+	<div class="hint">click to play the demo</div>
+</div></body></html>`;
+
+const browser = await chromium.launch();
+const tab = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+for (const poster of POSTERS) {
+	await tab.setContent(page(poster));
+	await tab.screenshot({ path: poster.out, type: "jpeg", quality: 82 });
+	console.log(`wrote ${poster.out}`);
+}
+await browser.close();
+```
+
+- [ ] **Step 3: Generate, verify, commit**
+
+Run: `node scripts/generate-posters.mjs && ls -la public/ai-14all/*.jpg public/ai-samantha/*.jpg public/ai-whisper/*.jpg`
+Expected: four JPEGs exist, each roughly 20–60 KB.
+
+```bash
+git add scripts/generate-posters.mjs public/ai-14all public/ai-samantha public/ai-whisper package.json pnpm-lock.yaml
+git commit -m "feat(media): committed poster frames + generator script"
+```
+
+---
+
+### Task 4: Homepage schema, flagship invariant loader, and flagship content
+
+One task on purpose: the schema/loader contract and the content that satisfies it land in a single green commit. The red build check midway is an internal verification step — nothing is committed while red. All copy below is claims-vetted; do not embellish it.
 
 **Files:**
 
@@ -343,11 +462,14 @@ The loader's invariants are the spec §7.1 build contract. This task ends RED on
 - Create: `src/lib/flagships.ts`
 - Modify: `src/pages/index.astro` (temporary probe import)
 - Modify: `src/pages/projects/[...slug].astro` (drop removed-field references)
+- Create: `src/content/projects/ai-xavier.mdx`
+- Modify: `src/content/projects/ai-samantha.mdx` (full replacement)
+- Modify: `src/content/projects/ai-14all.mdx`
 
 **Interfaces:**
 
-- Consumes: nothing.
-- Produces: `FLAGSHIP_IDS`, `FlagshipId`, `AVAILABILITY_VALUES = ["shipping", "coming soon", "early access"]`, `Availability`, `Flagship` (collection entry whose `data.homepage` is required), `getFlagships(): Promise<Flagship[]>` (sorted by rank, throws with a `flagship contract:` prefix on any violation). The schema gains optional `homepage` and `videoPoster` fields and loses `download`/`downloadWindows`.
+- Consumes: poster paths from Task 3.
+- Produces: `FLAGSHIP_IDS`, `FlagshipId`, `AVAILABILITY_VALUES = ["shipping", "coming soon", "early access"]`, `Availability`, `Flagship` (collection entry whose `data.homepage` is required), `getFlagships(): Promise<Flagship[]>` (sorted by rank, throws with a `flagship contract:` prefix on any violation); three entries with `data.homepage.featured === true` that satisfy it. The schema gains optional `homepage` and `videoPoster` fields and loses `download`/`downloadWindows`.
 
 - [ ] **Step 1: Extend the schema in `src/content.config.ts`**
 
@@ -533,132 +655,14 @@ const flagshipCount = (await getFlagships()).length;
 console.log(`[build] flagship contract ok (${flagshipCount})`);
 ```
 
-In `src/pages/projects/[...slug].astro`, delete the two `data.download …` / `data.downloadWindows …` JSX blocks inside `.head-actions` (the `<StatusChip …/>` stays; Task 17 rebuilds downloads properly). Also delete the now-unused `.download-cta` CSS rules.
+In `src/pages/projects/[...slug].astro`, delete the two `data.download …` / `data.downloadWindows …` JSX blocks inside `.head-actions` (the `<StatusChip …/>` stays; Task 15 rebuilds downloads properly). Also delete the now-unused `.download-cta` CSS rules.
 
-- [ ] **Step 4: Run the red verification**
+- [ ] **Step 4: Prove the contract bites (internal red check — do NOT commit here)**
 
 Run: `pnpm build`
-Expected: FAIL with `flagship contract: featured set must be exactly [ai-14all, ai-samantha, ai-xavier], got []`. `pnpm check` must still PASS (the failure is the runtime invariant, not types).
+Expected: FAIL with `flagship contract: featured set must be exactly [ai-14all, ai-samantha, ai-xavier], got []`. `pnpm check` must still PASS (the failure is the runtime invariant, not types). This is the task's TDD red; the working tree stays uncommitted until Step 9's green gate.
 
-- [ ] **Step 5: Commit the red contract**
-
-```bash
-git add src/content.config.ts src/lib/flagships.ts src/pages/index.astro "src/pages/projects/[...slug].astro"
-git commit -m "feat(schema): homepage frontmatter contract + flagship invariant loader (red until content lands)"
-```
-
-### Task 4: Committed video posters
-
-Playwright's bundled Chromium cannot decode the H.264 demo videos, so posters are **designed frames** rendered from token-styled HTML — consistent with the CSS/HTML product-visual language (spec §4.5, §8).
-
-**Files:**
-
-- Modify: `package.json` (devDependency `playwright`)
-- Create: `scripts/generate-posters.mjs`
-- Create (generated, committed): `public/ai-14all/hero-demo-poster.jpg`, `public/ai-14all/inline-review-demo-poster.jpg`, `public/ai-samantha/hero-demo-poster.jpg`, `public/ai-whisper/workflow-demo-poster.jpg`
-
-**Interfaces:**
-
-- Consumes: token values from Task 1 (inlined — the script is standalone HTML).
-- Produces: the four poster paths above; Tasks 5–6 reference them verbatim.
-
-- [ ] **Step 1: Install playwright and its chromium**
-
-```bash
-pnpm add -D playwright
-pnpm exec playwright install chromium
-```
-
-(pnpm's `onlyBuiltDependencies` allowlist is untouched — playwright needs no postinstall script; browsers install via the CLI.)
-
-- [ ] **Step 2: Write `scripts/generate-posters.mjs`**
-
-```js
-// Renders committed poster frames for the demo videos. Re-run after replacing a demo.
-import { chromium } from "playwright";
-
-const POSTERS = [
-	{
-		out: "public/ai-14all/hero-demo-poster.jpg",
-		eyebrow: "ai-14all",
-		title: "mission control for parallel agents",
-		tint: "147, 164, 189",
-	},
-	{
-		out: "public/ai-14all/inline-review-demo-poster.jpg",
-		eyebrow: "ai-14all",
-		title: "inline review, inside the editor",
-		tint: "147, 164, 189",
-	},
-	{
-		out: "public/ai-samantha/hero-demo-poster.jpg",
-		eyebrow: "ai-samantha",
-		title: "the orb is listening",
-		tint: "168, 120, 200",
-	},
-	{
-		out: "public/ai-whisper/workflow-demo-poster.jpg",
-		eyebrow: "ai-whisper",
-		title: "a spec-driven run, live",
-		tint: "138, 138, 138",
-	},
-];
-
-const page = ({ eyebrow, title, tint }) => `<!doctype html><html><head><style>
-	body { margin: 0; width: 1280px; height: 720px; display: grid; place-items: center;
-		background: radial-gradient(ellipse at 50% 40%, rgba(${tint}, 0.14), transparent 65%) #0d0d0d;
-		color: #e6e6e6; font-family: ui-monospace, Menlo, monospace; }
-	.frame { text-align: center; }
-	.eyebrow { color: rgba(${tint}, 0.9); font-size: 22px; letter-spacing: 0.08em; }
-	.title { font-size: 40px; font-weight: 600; margin-top: 16px; }
-	.play { margin: 40px auto 0; width: 88px; height: 88px; border: 2px solid #ff8163;
-		border-radius: 50%; display: grid; place-items: center; color: #ff8163; font-size: 30px; }
-	.hint { margin-top: 20px; color: #8a8a8a; font-size: 18px; }
-</style></head><body><div class="frame">
-	<div class="eyebrow">${eyebrow}</div>
-	<div class="title">${title}</div>
-	<div class="play">▶</div>
-	<div class="hint">click to play the demo</div>
-</div></body></html>`;
-
-const browser = await chromium.launch();
-const tab = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-for (const poster of POSTERS) {
-	await tab.setContent(page(poster));
-	await tab.screenshot({ path: poster.out, type: "jpeg", quality: 82 });
-	console.log(`wrote ${poster.out}`);
-}
-await browser.close();
-```
-
-- [ ] **Step 3: Generate, verify, commit**
-
-Run: `node scripts/generate-posters.mjs && ls -la public/ai-14all/*.jpg public/ai-samantha/*.jpg public/ai-whisper/*.jpg`
-Expected: four JPEGs exist, each roughly 20–60 KB.
-
-```bash
-git add scripts/generate-posters.mjs public/ai-14all public/ai-samantha public/ai-whisper package.json pnpm-lock.yaml
-git commit -m "feat(media): committed poster frames + generator script"
-```
-
----
-
-### Task 5: Flagship content — xavier created, samantha realigned, 14all de-pinned (green)
-
-Turns Task 3's red build green. All copy below is claims-vetted; do not embellish it.
-
-**Files:**
-
-- Create: `src/content/projects/ai-xavier.mdx`
-- Modify: `src/content/projects/ai-samantha.mdx` (full replacement)
-- Modify: `src/content/projects/ai-14all.mdx`
-
-**Interfaces:**
-
-- Consumes: schema + loader from Task 3; poster paths from Task 4.
-- Produces: three entries where `data.homepage.featured === true`; `getFlagships()` returns them ranked 1–3.
-
-- [ ] **Step 1: Create `src/content/projects/ai-xavier.mdx`**
+- [ ] **Step 5: Create `src/content/projects/ai-xavier.mdx`**
 
 ```mdx
 ---
@@ -671,7 +675,7 @@ features:
     - "watch live agent terminals from your phone"
     - "answer the prompt that is blocking an agent — from anywhere"
     - "steer with a new instruction, or interrupt a session mid-run"
-    - "paired-device channel to your desktop — the machine at home stays the authority"
+    - "keep authority at home — your phone extends your reach; your desktop stays in charge"
 homepage:
     featured: true
     rank: 2
@@ -709,7 +713,7 @@ xavier means a blocked agent waits minutes for an answer, not hours for your ret
 <Features list={frontmatter.features} />
 ```
 
-- [ ] **Step 2: Replace `src/content/projects/ai-samantha.mdx` entirely**
+- [ ] **Step 6: Replace `src/content/projects/ai-samantha.mdx` entirely**
 
 ```mdx
 ---
@@ -721,11 +725,11 @@ wip: true
 video: "/ai-samantha/hero-demo.mp4"
 videoPoster: "/ai-samantha/hero-demo-poster.jpg"
 features:
-    - "supervises live ai-14all sessions — ask what's happening, hear who needs you"
-    - "local speech recognition and local text-to-speech — all speech stays on your machine"
-    - "multi-turn conversation via llm adapters (your configured model providers)"
-    - "menu-bar tray popover with wake-word activation"
-    - "cross-session short-term memory (8 turns, 72h)"
+    - "supervise live ai-14all sessions — ask what's happening, hear who needs you"
+    - "keep every word on your machine — speech recognition and voice synthesis run fully locally"
+    - "hold a real conversation through the model providers you already use"
+    - "summon her from the menu bar with a wake word — no window switching"
+    - "remember the recent thread across sessions, so follow-ups just work"
 homepage:
     featured: true
     rank: 3
@@ -764,7 +768,7 @@ the rest of the ecosystem — supervision you can talk to.
 <Features list={frontmatter.features} />
 ```
 
-- [ ] **Step 3: Edit `src/content/projects/ai-14all.mdx`**
+- [ ] **Step 7: Edit `src/content/projects/ai-14all.mdx`**
 
 In the frontmatter: delete the `download:` and `downloadWindows:` lines; add `videoPoster: "/ai-14all/hero-demo-poster.jpg"` after `video:`; and append the `homepage` block before the closing `---`:
 
@@ -786,7 +790,7 @@ homepage:
 
 In the body: delete the entire `## download` section (the "Latest stable release" line, the three
 asset bullets, the auto-update blockquote, and the repo/changelog/known-issues list). In its place
-put a version-free links list (the download UI returns in Task 17, rendered from the module):
+put a version-free links list (the download UI returns in Task 15, rendered from the module):
 
 ```md
 ## more
@@ -795,24 +799,24 @@ put a version-free links list (the download UI returns in Task 17, rendered from
 - [known issues](https://github.com/ai-creed/ai-14all/blob/master/KNOWN-ISSUES.md)
 ```
 
-Leave `## requirements` and `## known limits` as they are, and leave the inline-review `<video>` untouched (Task 6 converts it).
+Leave `## requirements` and `## known limits` as they are, and leave the inline-review `<video>` untouched (Task 5 converts it).
 
-- [ ] **Step 4: Green verification**
+- [ ] **Step 8: Green verification (the task's single gate)**
 
-Run: `pnpm build`
-Expected: PASS, with `[build] flagship contract ok (3)` in the log. Then confirm the contract bites: temporarily change `featured: true` to `featured: false` in `ai-xavier.mdx`, run `pnpm build`, expect FAIL with `flagship contract: featured set…`; revert the line.
+Run: `pnpm check && pnpm lint && pnpm build`
+Expected: all PASS, with `[build] flagship contract ok (3)` in the log. Then confirm the contract still bites: temporarily change `featured: true` to `featured: false` in `ai-xavier.mdx`, run `pnpm build`, expect FAIL with `flagship contract: featured set…`; revert the line.
 
 Run: `grep -rn "releases/download" src/content && echo LEAK || echo clean`
 Expected: `clean`.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 9: Commit (green)**
 
 ```bash
-git add src/content/projects
-git commit -m "content(flagships): xavier page, samantha early-access realignment, 14all de-pinned downloads"
+git add src/content.config.ts src/lib/flagships.ts src/pages/index.astro "src/pages/projects/[...slug].astro" src/content/projects
+git commit -m "feat(flagships): homepage contract, invariant loader, and flagship content"
 ```
 
-### Task 6: Click-to-play media everywhere
+### Task 5: Click-to-play media everywhere
 
 **Files:**
 
@@ -822,8 +826,8 @@ git commit -m "content(flagships): xavier page, samantha early-access realignmen
 
 **Interfaces:**
 
-- Consumes: `videoPoster` frontmatter (Task 3 schema), poster files (Task 4).
-- Produces: zero `autoplay` attributes anywhere in `src/`; the exact `<video … preload="none" controls playsinline>` shape `check:media` (Task 18) asserts.
+- Consumes: `videoPoster` frontmatter (Task 4 schema), poster files (Task 3).
+- Produces: zero `autoplay` attributes anywhere in `src/`; the exact `<video … preload="none" controls playsinline>` shape `check:media` (Task 17) asserts.
 
 - [ ] **Step 1: Convert the template video in `[...slug].astro`**
 
@@ -881,7 +885,7 @@ git commit -m "fix(media): click-to-play posters everywhere, no autoplay"
 
 ---
 
-### Task 7: Base.astro — skip link, main landmark, slots, per-page OG
+### Task 6: Base.astro — skip link, main landmark, slots, per-page OG
 
 **Files:**
 
@@ -943,7 +947,7 @@ git commit -m "feat(layout): skip link, main landmark, header/footer slots, per-
 
 ---
 
-### Task 8: LandingHeader and LandingFooter
+### Task 7: LandingHeader and LandingFooter
 
 **Files:**
 
@@ -953,7 +957,7 @@ git commit -m "feat(layout): skip link, main landmark, header/footer slots, per-
 **Interfaces:**
 
 - Consumes: `AI14ALL_DOWNLOADS.releasePageUrl` (Task 2), `SITE_GITHUB_URL` / `SITE_CONTACT_EMAIL` from `~/consts`, tokens (Task 1).
-- Produces: no props on either component. Anchor targets they link to — `#system`, `#products`, `#north-star`, `#creed` — are produced by Tasks 10–13/16. No Discord server exists, so "community" points at the GitHub org (the spec's "Discord/community" secondary; do not invent a Discord URL).
+- Produces: no props on either component. Anchor targets they link to — `#system`, `#products`, `#north-star`, `#creed` — are produced by Tasks 9, 11, 12, and 16. Both components use the shared 899 px CTA breakpoint. No Discord server exists, so "community" points at the GitHub org (the spec's "Discord/community" secondary; do not invent a Discord URL).
 
 - [ ] **Step 1: Write `src/components/LandingHeader.astro`**
 
@@ -1029,7 +1033,7 @@ import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
 		background: var(--accent);
 		color: var(--on-accent);
 		border-radius: var(--radius);
-		padding: var(--s-2) var(--s-3);
+		padding: var(--s-3) var(--s-4); /* 44px target */
 		font-weight: 600;
 	}
 	a.cta:hover {
@@ -1071,7 +1075,8 @@ import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
 		text-align: center;
 		padding: var(--s-3);
 	}
-	@media (max-width: 719px) {
+	/* the shared 899px CTA breakpoint — must match hero, chapters, and closing */
+	@media (max-width: 899px) {
 		.nav-desktop {
 			display: none;
 		}
@@ -1143,7 +1148,9 @@ import { SITE_GITHUB_URL, SITE_CONTACT_EMAIL } from "~/consts";
 	.col a {
 		border: none;
 		color: var(--fg-dim);
-		padding: var(--s-2) 0;
+		min-height: 44px;
+		display: inline-flex;
+		align-items: center;
 	}
 	.col a:hover {
 		color: var(--accent);
@@ -1170,9 +1177,9 @@ git add src/components/LandingHeader.astro src/components/LandingFooter.astro
 git commit -m "feat(landing): header and footer chrome"
 ```
 
-### Task 9: Product visuals — Ai14allVisual, XavierVisual, SamanthaVisual
+### Task 8: Product visuals — Ai14allVisual, XavierVisual, SamanthaVisual
 
-Pure HTML/CSS product frames. The ONLY animation on the site is `Ai14allVisual`'s breathing needs-you dot. Every state is text + color, never color alone.
+Pure HTML/CSS product frames. The ONLY animation on the site is `Ai14allVisual`'s breathing needs-you indicator — the dot stays status-gold, but the animated pulse itself is coral, the spec's single attention accent. Every state is text + color, never color alone.
 
 **Files:**
 
@@ -1183,7 +1190,7 @@ Pure HTML/CSS product frames. The ONLY animation on the site is `Ai14allVisual`'
 **Interfaces:**
 
 - Consumes: `--tint-*`, `--status-*`, `--accent` tokens (Task 1).
-- Produces: each component takes `interface Props { variant?: "hero" | "chapter" }` (default `"chapter"`); the root element carries `class:list={["root", variant]}` so the hero can scale them down. Tasks 10, 11, and 16 mount them.
+- Produces: each component takes `interface Props { variant?: "hero" | "chapter" }` (default `"chapter"`); the root element carries `class:list={["root", variant]}` so the hero can scale them down. Tasks 9, 10, and 16 mount them.
 
 - [ ] **Step 1: Write `src/components/Ai14allVisual.astro`**
 
@@ -1282,17 +1289,18 @@ const { variant = "chapter" } = Astro.props;
 	.dot.waiting {
 		background: var(--status-waiting);
 	}
+	/* the single attention pulse: dot stays status-gold, the breathing glow is coral (spec §4.1) */
 	.breath {
 		animation: breathe 3.2s ease-in-out infinite;
 	}
 	@keyframes breathe {
 		0%,
 		100% {
-			box-shadow: 0 0 0 0 rgba(212, 162, 76, 0);
+			box-shadow: 0 0 0 0 rgba(255, 129, 99, 0);
 			opacity: 0.65;
 		}
 		50% {
-			box-shadow: 0 0 0 6px rgba(212, 162, 76, 0.18);
+			box-shadow: 0 0 0 6px rgba(255, 129, 99, 0.22);
 			opacity: 1;
 		}
 	}
@@ -1537,7 +1545,7 @@ git add src/components/Ai14allVisual.astro src/components/XavierVisual.astro src
 git commit -m "feat(landing): css product visuals for the three flagships"
 ```
 
-### Task 10: EcosystemHero
+### Task 9: EcosystemHero
 
 **Files:**
 
@@ -1545,7 +1553,7 @@ git commit -m "feat(landing): css product visuals for the three flagships"
 
 **Interfaces:**
 
-- Consumes: `Flagship` + `getFlagships()` ordering (Task 3), the three visuals (Task 9), `AI14ALL_DOWNLOADS.releasePageUrl` (Task 2).
+- Consumes: `Flagship` + `getFlagships()` ordering (Task 4), the three visuals (Task 8), `AI14ALL_DOWNLOADS.releasePageUrl` (Task 2).
 - Produces: `interface Props { flagships: Flagship[] }` (rank-sorted). Section id `#system`. The proof line derives from `flagships[n].data.homepage.availability` — never hand-written.
 
 - [ ] **Step 1: Write `src/components/EcosystemHero.astro`**
@@ -1706,7 +1714,7 @@ git commit -m "feat(landing): ecosystem hero with derived proof line"
 
 ---
 
-### Task 11: AvailabilityChip + FlagshipChapter
+### Task 10: AvailabilityChip + FlagshipChapter
 
 **Files:**
 
@@ -1715,8 +1723,8 @@ git commit -m "feat(landing): ecosystem hero with derived proof line"
 
 **Interfaces:**
 
-- Consumes: `Flagship` + `Availability` (Task 3), `AI14ALL_DOWNLOAD_ASSETS` + `AI14ALL_DOWNLOADS` (Task 2), status tokens (Task 1).
-- Produces: `AvailabilityChip` with `interface Props { availability: Availability }` (also used by Task 17); `FlagshipChapter` with `interface Props { flagship: Flagship; id?: string }` — `id` lets the first chapter carry `#products`. The chapter renders the numbered stage label, display headline, summary, a `<slot />` for chapter copy, a `<slot name="visual" />`, and per-flagship actions. Task 16 mounts one per flagship with the matching visual in the slot.
+- Consumes: `Flagship` + `Availability` (Task 4), `AI14ALL_DOWNLOAD_ASSETS` + `AI14ALL_DOWNLOADS` (Task 2), status tokens (Task 1).
+- Produces: `AvailabilityChip` with `interface Props { availability: Availability }` (also used by Task 15); `FlagshipChapter` with `interface Props { flagship: Flagship; id?: string }` — `id` lets the first chapter carry `#products`. The chapter renders the numbered stage label, display headline, summary, a `<slot />` for chapter copy, a `<slot name="visual" />`, and per-flagship actions. Task 16 mounts one per flagship with the matching visual in the slot.
 
 - [ ] **Step 1: Write `src/components/AvailabilityChip.astro`**
 
@@ -1950,7 +1958,7 @@ git commit -m "feat(landing): availability chip and shared flagship chapter with
 
 ---
 
-### Task 12: AutonomousLoop
+### Task 11: AutonomousLoop
 
 **Files:**
 
@@ -2131,7 +2139,7 @@ git add src/components/AutonomousLoop.astro
 git commit -m "feat(landing): honest autonomous-loop chapter"
 ```
 
-### Task 13: RecentlyShipped + Creed
+### Task 12: RecentlyShipped + Creed
 
 **Files:**
 
@@ -2203,6 +2211,9 @@ import { RECENTLY_SHIPPED } from "~/data/recently-shipped";
 	.sum {
 		color: var(--fg-dim);
 		border: none;
+		min-height: 44px;
+		display: inline-flex;
+		align-items: center;
 	}
 	.sum:hover {
 		color: var(--accent);
@@ -2304,7 +2315,7 @@ git commit -m "feat(landing): recently-shipped proof strip and creed chapter"
 
 ---
 
-### Task 14: EngineRoom
+### Task 13: EngineRoom
 
 **Files:**
 
@@ -2387,6 +2398,9 @@ const supporting = (await getCollection("projects"))
 	.name {
 		border: none;
 		font-weight: 600;
+		min-height: 44px;
+		display: inline-flex;
+		align-items: center;
 	}
 	.name:hover {
 		color: var(--accent);
@@ -2416,7 +2430,7 @@ git commit -m "feat(landing): collection-derived engine room, archived last"
 
 ---
 
-### Task 15: Homepage OG asset
+### Task 14: Homepage OG asset
 
 **Files:**
 
@@ -2469,6 +2483,109 @@ git add src/assets/og-home.svg scripts/generate-og.mjs public/og-home.png packag
 git commit -m "feat(meta): homepage og card built around the three-product system"
 ```
 
+### Task 15: Project pages — availability chip and module-fed download section
+
+Lands BEFORE homepage assembly so `/projects/ai-14all#download` exists the moment any mobile "get ai-14all" link ships (Task 16).
+
+**Files:**
+
+- Modify: `src/pages/projects/[...slug].astro`
+
+**Interfaces:**
+
+- Consumes: `AvailabilityChip` (Task 10), `AI14ALL_DOWNLOADS`/`AI14ALL_DOWNLOAD_ASSETS` (Task 2), `data.homepage` (Task 4).
+- Produces: `/projects/ai-14all/` contains `<section id="download">` — the target of every mobile "get ai-14all" route; flagship pages render the same availability label as the homepage from the same frontmatter field; every non-inline link on project pages meets the 44 px target contract.
+
+- [ ] **Step 1: Add imports and render the chip**
+
+In the frontmatter add:
+
+```ts
+import AvailabilityChip from "~/components/AvailabilityChip.astro";
+import { AI14ALL_DOWNLOADS, AI14ALL_DOWNLOAD_ASSETS } from "~/data/ai14all-downloads";
+```
+
+In `.head-actions`, before `<StatusChip …/>`, add:
+
+```astro
+{data.homepage && <AvailabilityChip availability={data.homepage.availability} />}
+```
+
+- [ ] **Step 2: Render the download section for ai-14all**
+
+Immediately after the `<section class="body"><Content /></section>` block, add:
+
+```astro
+{
+	project.id === "ai-14all" && (
+		<section id="download" class="downloads">
+			<h2># download</h2>
+			<ul>
+				{AI14ALL_DOWNLOAD_ASSETS.map((a) => (
+					<li>
+						<a href={a.url}>↓ {a.label}</a>
+					</li>
+				))}
+			</ul>
+			<p class="all">
+				every version on the <a href={AI14ALL_DOWNLOADS.releasePageUrl}>releases page</a> ·
+				auto-updates in the background on launch
+			</p>
+		</section>
+	)
+}
+```
+
+And in the `<style>` block add (the `li a` rule keeps markdown list links — changelog, known issues — at the 44 px target contract):
+
+```css
+.downloads {
+	margin-top: var(--s-8);
+}
+.downloads h2 {
+	color: var(--fg-dim);
+	font-weight: 500;
+	font-size: var(--fs-h3);
+	margin-bottom: var(--s-3);
+}
+.downloads ul {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--s-2);
+}
+.downloads a {
+	border: none;
+	color: var(--accent);
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+}
+.downloads .all {
+	margin-top: var(--s-3);
+	font-size: var(--fs-sm);
+	color: var(--fg-muted);
+}
+.body :global(li a) {
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
+}
+```
+
+- [ ] **Step 3: Verify and commit**
+
+Run: `pnpm build && grep -c 'id="download"' dist/projects/ai-14all/index.html`
+Expected: build passes; grep prints `1`. `/projects/ai-samantha/` shows `[early access]` + `[private]` chips; `/projects/ai-xavier/` shows `[coming soon]`; no page shows a version number outside the module-fed URLs; every non-prose link (header, download list, markdown lists) is at least 44 px tall.
+
+```bash
+git add "src/pages/projects/[...slug].astro"
+git commit -m "feat(projects): availability chips and module-fed download anchor"
+```
+
+---
+
 ### Task 16: Homepage assembly
 
 **Files:**
@@ -2477,7 +2594,7 @@ git commit -m "feat(meta): homepage og card built around the three-product syste
 
 **Interfaces:**
 
-- Consumes: every component from Tasks 8–14, `getFlagships`/`FlagshipId` (Task 3), `AI14ALL_DOWNLOADS` (Task 2), Base slots + `ogImage` (Task 7), `/og-home.png` (Task 15).
+- Consumes: every component from Tasks 7–13, `getFlagships`/`FlagshipId` (Task 4), `AI14ALL_DOWNLOADS` (Task 2), Base slots + `ogImage` (Task 6), `/og-home.png` (Task 14), and the `/projects/ai-14all#download` anchor (Task 15) that every mobile CTA below routes to.
 - Produces: the shipped homepage. The `VISUALS` map is typed `Record<FlagshipId, …>` — the spec's exhaustive flagship→visual guard: removing a flagship or forgetting a visual is a compile error.
 
 - [ ] **Step 1: Replace `src/pages/index.astro` entirely**
@@ -2643,102 +2760,7 @@ git add src/pages/index.astro
 git commit -m "feat(landing): assemble the ecosystem homepage"
 ```
 
----
-
-### Task 17: Project pages — availability chip and module-fed download section
-
-**Files:**
-
-- Modify: `src/pages/projects/[...slug].astro`
-
-**Interfaces:**
-
-- Consumes: `AvailabilityChip` (Task 12), `AI14ALL_DOWNLOADS`/`AI14ALL_DOWNLOAD_ASSETS` (Task 2), `data.homepage` (Task 3).
-- Produces: `/projects/ai-14all/` contains `<section id="download">` — the target of every mobile "get ai-14all" route; flagship pages render the same availability label as the homepage from the same frontmatter field.
-
-- [ ] **Step 1: Add imports and render the chip**
-
-In the frontmatter add:
-
-```ts
-import AvailabilityChip from "~/components/AvailabilityChip.astro";
-import { AI14ALL_DOWNLOADS, AI14ALL_DOWNLOAD_ASSETS } from "~/data/ai14all-downloads";
-```
-
-In `.head-actions`, before `<StatusChip …/>`, add:
-
-```astro
-{data.homepage && <AvailabilityChip availability={data.homepage.availability} />}
-```
-
-- [ ] **Step 2: Render the download section for ai-14all**
-
-Immediately after the `<section class="body"><Content /></section>` block, add:
-
-```astro
-{
-	project.id === "ai-14all" && (
-		<section id="download" class="downloads">
-			<h2># download</h2>
-			<ul>
-				{AI14ALL_DOWNLOAD_ASSETS.map((a) => (
-					<li>
-						<a href={a.url}>↓ {a.label}</a>
-					</li>
-				))}
-			</ul>
-			<p class="all">
-				every version on the <a href={AI14ALL_DOWNLOADS.releasePageUrl}>releases page</a> ·
-				auto-updates in the background on launch
-			</p>
-		</section>
-	)
-}
-```
-
-And in the `<style>` block add:
-
-```css
-.downloads {
-	margin-top: var(--s-8);
-}
-.downloads h2 {
-	color: var(--fg-dim);
-	font-weight: 500;
-	font-size: var(--fs-h3);
-	margin-bottom: var(--s-3);
-}
-.downloads ul {
-	list-style: none;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: var(--s-2);
-}
-.downloads a {
-	border: none;
-	color: var(--accent);
-	padding: var(--s-2) 0;
-	display: inline-block;
-}
-.downloads .all {
-	margin-top: var(--s-3);
-	font-size: var(--fs-sm);
-	color: var(--fg-muted);
-}
-```
-
-- [ ] **Step 3: Verify and commit**
-
-Run: `pnpm build && grep -c 'id="download"' dist/projects/ai-14all/index.html`
-Expected: build passes; grep prints `1`. `/projects/ai-samantha/` shows `[early access]` + `[private]` chips; `/projects/ai-xavier/` shows `[coming soon]`; no page shows a version number outside the module-fed URLs.
-
-```bash
-git add "src/pages/projects/[...slug].astro"
-git commit -m "feat(projects): availability chips and module-fed download anchor"
-```
-
-### Task 18: Guards — check:media and check:budget
+### Task 17: Guards — check:media and check:budget
 
 Both scripts parse built HTML with regexes; that is acceptable because they only ever read this site's own Astro output. Both exit non-zero with a listing on failure.
 
@@ -2751,7 +2773,7 @@ Both scripts parse built HTML with regexes; that is acceptable because they only
 **Interfaces:**
 
 - Consumes: `dist/` from `pnpm build`.
-- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling). CI (Task 21) runs both.
+- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus a hard zero-JS gate: any `<script>` tag on the built homepage fails). CI (Task 21) runs both.
 
 - [ ] **Step 1: Write `scripts/check-media.mjs`**
 
@@ -2797,6 +2819,9 @@ console.log(`check:media ok — ${pages.length} pages scanned`);
 // present), images and video posters; srcset counts its LARGEST candidate so the
 // measurement upper-bounds real transfer on every device. Only preload="none"
 // media payloads are excluded. gzip via Node zlib defaults. Ceiling: 102,400 bytes.
+// Zero-JS (spec §7.3): any <script> tag on the homepage fails the check outright;
+// script src / modulepreload resources are still counted so the budget stays an
+// upper bound even if that rule is ever relaxed.
 import { readFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
@@ -2816,6 +2841,13 @@ for (const [, href, rel] of html.matchAll(/<link\b[^>]*href="([^"]+)"[^>]*rel="(
 }
 for (const [, src] of html.matchAll(/<img\b[^>]*src="([^"]+)"/gi)) take(src);
 for (const [, poster] of html.matchAll(/<video\b[^>]*poster="([^"]+)"/gi)) take(poster);
+const scriptTags = [...html.matchAll(/<script\b[^>]*>/gi)].map((m) => m[0]);
+for (const [, src] of html.matchAll(/<script\b[^>]*src="([^"]+)"/gi)) take(src);
+for (const [, href] of html.matchAll(
+	/<link\b[^>]*rel="modulepreload"[^>]*href="([^"]+)"[^>]*>/gi,
+)) {
+	take(href);
+}
 for (const [, srcset] of html.matchAll(/srcset="([^"]+)"/gi)) {
 	// largest-byte candidate: measure all, keep the max
 	const candidates = srcset
@@ -2864,6 +2896,12 @@ for (const [u, size] of rows.sort((a, b) => b[1] - a[1])) {
 	console.log(`${String(size).padStart(8)}  ${u}`);
 }
 console.log(`${String(total).padStart(8)}  TOTAL (limit ${LIMIT})`);
+if (scriptTags.length) {
+	console.error(
+		`check:budget FAILED — zero-JS contract: ${scriptTags.length} <script> tag(s) on the homepage (first: ${scriptTags[0]})`,
+	);
+	process.exit(1);
+}
 if (missing.length) {
 	console.error(`check:budget FAILED — referenced but missing from dist: ${missing.join(", ")}`);
 	process.exit(1);
@@ -2887,7 +2925,7 @@ Add to `package.json` scripts:
 Run: `pnpm build && pnpm check:media && pnpm check:budget`
 Expected: both pass. If `check:budget` exceeds the ceiling, the fix order is: confirm the font file is the single 600-weight subset, then trim hero CSS — never raise `LIMIT`.
 
-Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both.
+Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; run `pnpm build` again to clean it.
 
 ```bash
 git add scripts/check-media.mjs scripts/check-homepage-budget.mjs package.json
@@ -2896,7 +2934,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 
 ---
 
-### Task 19: Guard — check:downloads
+### Task 18: Guard — check:downloads
 
 **Files:**
 
@@ -2906,7 +2944,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 **Interfaces:**
 
 - Consumes: `src/data/ai14all-downloads.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, and on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`.
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL or version string in `src/` outside the two typed data modules.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -2969,11 +3007,40 @@ if (!readFileSync(anchorPage, "utf8").includes('id="download"')) {
 	errors.push(`missing id="download" anchor in ${anchorPage}`);
 }
 
+// 5. Source provenance: the two typed data modules are the ONLY carriers of a
+// download URL or the current version string anywhere in src/ — a hand-written
+// copy that merely equals the module's URL still fails.
+const ALLOWED_SOURCES = new Set([
+	join("src", "data", "ai14all-downloads.ts"),
+	join("src", "data", "recently-shipped.ts"),
+]);
+const TEXT_RE = /\.(astro|ts|mjs|md|mdx|json|css|svg|ya?ml)$/;
+const sources = [];
+(function walkSrc(dir) {
+	for (const name of readdirSync(dir)) {
+		const p = join(dir, name);
+		if (statSync(p).isDirectory()) walkSrc(p);
+		else if (TEXT_RE.test(p)) sources.push(p);
+	}
+})("src");
+for (const file of sources) {
+	if (ALLOWED_SOURCES.has(file)) continue;
+	const text = readFileSync(file, "utf8");
+	if (text.includes("/releases/download/")) {
+		errors.push(`hand-written download URL outside the data modules: ${file}`);
+	}
+	if (text.includes(v)) {
+		errors.push(`hand-written version "${v}" outside the data modules: ${file}`);
+	}
+}
+
 if (errors.length) {
 	console.error(`check:downloads FAILED (${errors.length}):\n` + errors.join("\n"));
 	process.exit(1);
 }
-console.log(`check:downloads ok — v${v} live, ${pages.length} pages scanned`);
+console.log(
+	`check:downloads ok — v${v} live, ${pages.length} pages, ${sources.length} source files scanned`,
+);
 ```
 
 - [ ] **Step 2: Wire, run, commit**
@@ -2985,14 +3052,14 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites: change the module `VERSION` to `"1.8.1"`, rerun, expect the stale-version failure; revert.
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites twice: change the module `VERSION` to `"1.8.1"`, rerun, expect the stale-version failure; revert. Then add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` inside a comment in `ai-14all.mdx`, rerun, expect the source-provenance failure; revert.
 
 ```bash
 git add scripts/check-downloads.mjs package.json
 git commit -m "test(guards): download single-source, liveness, and staleness check"
 ```
 
-### Task 20: Guard — check:a11y (axe + pre-interaction network assertion)
+### Task 19: Guard — check:a11y (axe, tap targets, pre-interaction network)
 
 **Files:**
 
@@ -3001,8 +3068,8 @@ git commit -m "test(guards): download single-source, liveness, and staleness che
 
 **Interfaces:**
 
-- Consumes: `dist/`, `playwright` (Task 4), `axe-core`.
-- Produces: `pnpm check:a11y` — serves `dist/` on an ephemeral port, audits `/`, `/projects/ai-14all/`, `/projects/ai-xavier/`, `/projects/ai-samantha/` at 1440×900 and 390×844, fails on any axe violation with impact `serious`/`critical`, and fails if the homepage requests any video/audio asset before user interaction.
+- Consumes: `dist/`, `playwright` (Task 3), `axe-core`.
+- Produces: `pnpm check:a11y` — serves `dist/` on an ephemeral port, audits `/`, `/projects/ai-14all/`, `/projects/ai-xavier/`, `/projects/ai-samantha/` at 1440×900 and 390×844, fails on any axe violation with impact `serious`/`critical`, fails if the homepage requests any video/audio asset before user interaction, and — because axe's serious/critical gate does not reliably cover target size — asserts with bounding boxes at 390 px that every visible link outside a prose `<p>` is at least 44 px tall.
 
 - [ ] **Step 1: Install axe-core**
 
@@ -3085,6 +3152,25 @@ for (const viewport of VIEWPORTS) {
 				);
 			}
 		}
+		if (viewport.width === 390) {
+			const undersized = await page.evaluate(() => {
+				const bad = [];
+				for (const a of document.querySelectorAll("a")) {
+					if (a.closest("p")) continue; // inline prose links exempt (WCAG 2.5.8)
+					const box = a.getBoundingClientRect();
+					if (box.width === 0 || box.height === 0) continue; // hidden responsive variant
+					if (box.height < 44) {
+						bad.push(
+							`${a.textContent.trim().slice(0, 40)} (${Math.round(box.height)}px)`,
+						);
+					}
+				}
+				return bad;
+			});
+			for (const target of undersized) {
+				errors.push(`${route} @390px: tap target under 44px — ${target}`);
+			}
+		}
 	}
 	await page.close();
 }
@@ -3096,7 +3182,7 @@ if (errors.length) {
 	process.exit(1);
 }
 console.log(
-	`check:a11y ok — ${ROUTES.length} routes × ${VIEWPORTS.length} viewports, no serious/critical violations, no pre-interaction media`,
+	`check:a11y ok — ${ROUTES.length} routes × ${VIEWPORTS.length} viewports, no serious/critical violations, 44px targets hold, no pre-interaction media`,
 );
 ```
 
@@ -3109,7 +3195,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:a11y`
-Expected: pass. Prove it bites: temporarily remove `aria-label` from a `role="img"` visual (serious `aria-roles`/name violation) OR set a `.proof` color to `#555`, rebuild, expect failure; revert.
+Expected: pass. Prove it bites twice: temporarily remove `aria-label` from a `role="img"` visual (serious `aria-roles`/name violation) OR set a `.proof` color to `#555`, rebuild, expect failure; revert. Then temporarily delete the `min-height` line from `LandingFooter`'s `.col a`, rebuild, expect a tap-target failure; revert.
 
 ```bash
 git add scripts/check-a11y.mjs package.json pnpm-lock.yaml
@@ -3118,7 +3204,7 @@ git commit -m "test(guards): axe accessibility scan with pre-interaction media a
 
 ---
 
-### Task 21: Lighthouse thresholds
+### Task 20: Lighthouse thresholds
 
 **Files:**
 
@@ -3189,7 +3275,7 @@ git commit -m "test(guards): committed lighthouse thresholds (perf 0.95, lcp <15
 
 ---
 
-### Task 22: CI — run the full guard suite before deploy
+### Task 21: CI — run the full guard suite before deploy
 
 **Files:**
 
@@ -3197,7 +3283,7 @@ git commit -m "test(guards): committed lighthouse thresholds (perf 0.95, lcp <15
 
 **Interfaces:**
 
-- Consumes: every `pnpm` script from Tasks 18–21.
+- Consumes: every `pnpm` script from Tasks 17–20.
 - Produces: a deploy that cannot ship a contract regression. The ubuntu runner's preinstalled Chrome serves LHCI; `GITHUB_TOKEN` feeds `check:downloads`.
 
 - [ ] **Step 1: Replace the `build` job's steps after "Install" with**
@@ -3257,7 +3343,7 @@ git commit -m "ci: gate deploy on media, budget, downloads, a11y, and lighthouse
 
 ---
 
-### Task 23: Full validation sweep
+### Task 22: Full validation sweep
 
 No new files — this task executes spec §10 end to end and fixes anything it surfaces.
 
@@ -3280,7 +3366,7 @@ kill $PREVIEW_PID
 
 Review each screenshot: hero CTA before visuals on mobile; trio directly after hero; visuals precede copy in mobile chapters; loop vertical ≤ 899 px; creed one column at 320 px; engine room compacts; nothing clipped.
 
-- [ ] **Step 3: Overflow assertion**
+- [ ] **Step 3: Overflow + CTA-breakpoint assertion (both sides of 900 px)**
 
 ```bash
 pnpm preview & PREVIEW_PID=$!
@@ -3295,7 +3381,20 @@ for (const width of [320, 390, 430]) {
 	if (over > 0) { console.error(`horizontal overflow ${over}px at ${width}`); process.exit(1); }
 	await p.close();
 }
-await b.close(); console.log("no horizontal overflow at 320/390/430");
+for (const width of [900, 899]) {
+	const p = await b.newPage({ viewport: { width, height: 900 } });
+	await p.goto("http://localhost:4321/");
+	const modes = await p.evaluate(() => {
+		const vis = (sel) => [...document.querySelectorAll(sel)].some((el) => getComputedStyle(el).display !== "none");
+		return { desk: vis(".cta-desktop"), mob: vis(".cta-mobile"), navDesk: vis(".nav-desktop"), navMob: vis(".nav-mobile") };
+	});
+	const expectDesktop = width >= 900;
+	if (modes.desk !== expectDesktop || modes.mob === expectDesktop || modes.navDesk !== expectDesktop || modes.navMob === expectDesktop) {
+		console.error(`mixed CTA modes at ${width}px: ${JSON.stringify(modes)}`); process.exit(1);
+	}
+	await p.close();
+}
+await b.close(); console.log("no overflow at 320/390/430; CTA modes exclusive at 899/900");
 '
 kill $PREVIEW_PID
 ```
@@ -3325,7 +3424,7 @@ Product application redesigns; documentation systems; pricing; testimonials/inve
 
 ## Execution Notes
 
-- Task order is the dependency order; only Task 3 ends red (by design), and Task 5 turns it green.
+- Task order is the dependency order; every task ends and commits green. The only intended red is an internal, uncommitted step of Task 4 (the contract check before the content lands), and Task 15 lands the `#download` anchor before Task 16 ships any link to it.
 - Node ≥ 22.6 locally (for `--experimental-strip-types`); CI pins Node 22.
 - Never hand-edit generated artifacts (`public/og-home.png`, poster JPEGs) — rerun their scripts.
 - Every commit message follows the repo's `type(scope): summary` lowercase convention.
