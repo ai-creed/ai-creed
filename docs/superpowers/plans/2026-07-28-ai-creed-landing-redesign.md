@@ -2799,7 +2799,7 @@ Both scripts parse built HTML with regexes; that is acceptable because they only
 **Interfaces:**
 
 - Consumes: `dist/` from `pnpm build`.
-- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus two hard gates: any `<script>` tag on the built homepage fails, and any external automatically fetched resource — image, stylesheet, preload, icon, or font — fails rather than being skipped). CI (Task 21) runs both.
+- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus two hard gates: any `<script>` tag on the built homepage fails, and any external automatically fetched resource — image, stylesheet, preload, icon, font, or `srcset` candidate — fails rather than being skipped; relative URLs are resolved against their containing document or stylesheet, never dropped). CI (Task 21) runs both.
 
 - [ ] **Step 1: Write `scripts/check-media.mjs`**
 
@@ -2849,6 +2849,7 @@ console.log(`check:media ok — ${pages.length} pages scanned`);
 // script src / modulepreload resources are still counted so the budget stays an
 // upper bound even if that rule is ever relaxed. External (cross-origin) auto-
 // fetched resources cannot be measured from dist, so they are forbidden outright.
+// Relative URLs resolve against the referencing document or stylesheet.
 import { readFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
@@ -2857,14 +2858,17 @@ const html = readFileSync("dist/index.html", "utf8");
 const urls = new Set();
 
 const external = [];
-const take = (u) => {
+const missing = [];
+// Classify one URL: cross-origin → forbidden; local — root-relative OR relative,
+// resolved against the referencing document/stylesheet — → counted.
+const take = (u, basePath = "/index.html") => {
 	if (!u) return;
-	const clean = u.split(/[?#]/)[0];
+	if (/^[a-z][a-z0-9+.-]*:/i.test(u) && !/^https?:/i.test(u)) return; // data:, mailto:, …
 	if (/^(?:https?:)?\/\//i.test(u)) {
-		external.push(clean); // cross-origin auto-fetch is forbidden; reported below
+		external.push(u.split(/[?#]/)[0]); // cross-origin auto-fetch is forbidden; reported below
 		return;
 	}
-	if (u.startsWith("/")) urls.add(clean);
+	urls.add(new URL(u, `https://local${basePath}`).pathname);
 };
 
 for (const [, rel, href] of html.matchAll(/<link\b[^>]*rel="([^"]+)"[^>]*href="([^"]+)"[^>]*>/gi)) {
@@ -2883,24 +2887,29 @@ for (const [, href] of html.matchAll(
 	take(href);
 }
 for (const [, srcset] of html.matchAll(/srcset="([^"]+)"/gi)) {
-	// largest-byte candidate: measure all, keep the max
-	const candidates = srcset
-		.split(",")
-		.map((c) => c.trim().split(/\s+/)[0])
-		.filter((u) => u.startsWith("/"));
+	// EVERY candidate is classified — external ones are forbidden, local ones are
+	// resolved; only the LARGEST existing local candidate counts toward the total.
+	const candidates = srcset.split(",").map((c) => c.trim().split(/\s+/)[0]);
 	let best = null;
 	let bestSize = -1;
 	for (const c of candidates) {
-		const p = `dist${c.split(/[?#]/)[0]}`;
-		if (existsSync(p)) {
-			const size = gzipSync(readFileSync(p)).length;
-			if (size > bestSize) {
-				best = c;
-				bestSize = size;
-			}
+		if (/^(?:https?:)?\/\//i.test(c)) {
+			external.push(c.split(/[?#]/)[0]);
+			continue;
+		}
+		const resolved = new URL(c, "https://local/index.html").pathname;
+		const p = `dist${resolved}`;
+		if (!existsSync(p)) {
+			missing.push(resolved);
+			continue;
+		}
+		const size = gzipSync(readFileSync(p)).length;
+		if (size > bestSize) {
+			best = resolved;
+			bestSize = size;
 		}
 	}
-	if (best) take(best);
+	if (best) urls.add(best);
 }
 if (existsSync("dist/favicon.ico")) take("/favicon.ico");
 
@@ -2909,12 +2918,13 @@ const cssFiles = [...urls].filter((u) => u.endsWith(".css"));
 for (const css of cssFiles) {
 	const p = `dist${css}`;
 	if (!existsSync(p)) continue;
-	for (const [, , u] of readFileSync(p, "utf8").matchAll(/url\((["']?)([^)"']+)\1\)/g)) take(u);
+	for (const [, , u] of readFileSync(p, "utf8").matchAll(/url\((["']?)([^)"']+)\1\)/g)) {
+		take(u, css); // relative font/image refs resolve against the stylesheet's path
+	}
 }
 
 let total = gzipSync(readFileSync("dist/index.html")).length;
 const rows = [["/index.html", total]];
-const missing = [];
 for (const u of urls) {
 	const p = `dist${u}`;
 	if (!existsSync(p)) {
@@ -2965,7 +2975,7 @@ Add to `package.json` scripts:
 Run: `pnpm build && pnpm check:media && pnpm check:budget`
 Expected: both pass. If `check:budget` exceeds the ceiling, the fix order is: confirm the font file is the single 600-weight subset, then trim hero CSS — never raise `LIMIT`.
 
-Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; rebuild. Finally `printf '<img src="https://example.com/big.jpg" alt="" />' >> dist/index.html && pnpm check:budget` must fail on the external-resource gate; run `pnpm build` again to clean it.
+Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; rebuild. Finally `printf '<img src="https://example.com/big.jpg" alt="" />' >> dist/index.html && pnpm check:budget` must fail on the external-resource gate; the same trick with `<img src="big.jpg" alt="" />` (relative URL) must fail as missing `/big.jpg`, and with `<img srcset="https://cdn.example.com/x.jpg 1x" alt="" />` must fail on the external gate — proving relative resolution and per-candidate srcset classification. Run `pnpm build` again to clean up.
 
 ```bash
 git add scripts/check-media.mjs scripts/check-homepage-budget.mjs package.json
@@ -2984,7 +2994,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 **Interfaces:**
 
 - Consumes: `src/data/ai14all-downloads.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one.
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; and every BUILT ai-14all release-page link must equal a module-derived destination (`releasePageUrl` or a recently-shipped entry), whatever source expression produced it.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -2994,6 +3004,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { AI14ALL_DOWNLOADS, AI14ALL_DOWNLOAD_ASSETS } from "../src/data/ai14all-downloads.ts";
+import { RECENTLY_SHIPPED } from "../src/data/recently-shipped.ts";
 
 const errors = [];
 const v = AI14ALL_DOWNLOADS.version;
@@ -3033,10 +3044,24 @@ const pages = [];
 })("dist");
 
 const allowed = new Set(AI14ALL_DOWNLOAD_ASSETS.map((a) => a.url));
+const RELEASES_PREFIX = "https://github.com/ai-creed/ai-14all/releases";
+const allowedPages = new Set([
+	AI14ALL_DOWNLOADS.releasePageUrl,
+	...RECENTLY_SHIPPED.map((e) => e.href).filter((h) => h.startsWith(RELEASES_PREFIX)),
+]);
 for (const page of pages) {
 	const html = readFileSync(page, "utf8");
 	for (const [, href] of html.matchAll(/href="([^"]*\/releases\/download\/[^"]*)"/g)) {
 		if (!allowed.has(href)) errors.push(`download link bypasses module in ${page}: ${href}`);
+	}
+	// however a release-page URL was constructed in source, the RENDERED link
+	// must be a module-derived destination
+	for (const [, href] of html.matchAll(
+		/href="([^"]*github\.com\/ai-creed\/ai-14all\/releases[^"]*)"/g,
+	)) {
+		if (!href.includes("/releases/download/") && !allowedPages.has(href)) {
+			errors.push(`release-page link not derived from the data modules in ${page}: ${href}`);
+		}
 	}
 	for (const bad of ["apps.apple.com", "testflight.apple.com", "itms-services:"]) {
 		if (html.includes(bad)) errors.push(`forbidden install destination "${bad}" in ${page}`);
@@ -3068,7 +3093,7 @@ const VERSION_FREE = (file) =>
 	file.startsWith("src/lib/") ||
 	file.startsWith("src/pages/");
 const SEMVER_RE = /\bv?\d+\.\d+\.\d+\b/;
-const TEXT_RE = /\.(astro|ts|mjs|md|mdx|json|css|svg|ya?ml)$/;
+const TEXT_RE = /\.(astro|ts|tsx|js|jsx|mjs|cjs|md|mdx|html|json|css|svg|ya?ml)$/;
 const sources = [];
 (function walkSrc(dir) {
 	for (const name of readdirSync(dir)) {
@@ -3085,6 +3110,11 @@ for (const file of sources) {
 	}
 	if (text.includes("github.com/ai-creed/ai-14all/releases")) {
 		errors.push(`hand-written ai-14all release URL outside the data modules: ${file}`);
+	}
+	// catches CONSTRUCTED urls too — the path fragment alone is forbidden outside
+	// the modules, so gluing a github root onto "/releases/latest" still fails
+	if (/\/releases\/(latest|tag\/)/.test(text)) {
+		errors.push(`hand-written release path outside the data modules: ${file}`);
 	}
 	if (/ai-14all[-\s]v?\d+\.\d+\.\d+/.test(text)) {
 		errors.push(`hand-written ai-14all version outside the data modules: ${file}`);
@@ -3112,7 +3142,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites four ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught, not only the current one).
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites six ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean.
 
 ```bash
 git add scripts/check-downloads.mjs package.json
@@ -3129,7 +3159,7 @@ git commit -m "test(guards): download single-source, liveness, and staleness che
 **Interfaces:**
 
 - Consumes: `dist/`, `playwright` (Task 3), `axe-core`.
-- Produces: `pnpm check:a11y` — serves `dist/` on an ephemeral port, audits `/`, `/projects/ai-14all/`, `/projects/ai-xavier/`, `/projects/ai-samantha/` at 1440×900 and 390×844, fails on any axe violation with impact `serious`/`critical`, fails if the homepage requests any video/audio asset before user interaction, and — because axe's serious/critical gate does not reliably cover target size — asserts with bounding boxes at 390 px that every visible interactive element (`a, button, summary, input, select, textarea, [role=button]`) outside a prose `<p>` measures at least 44 × 44 px (spec §9).
+- Produces: `pnpm check:a11y` — serves `dist/` on an ephemeral port, audits `/`, `/projects/ai-14all/`, `/projects/ai-xavier/`, `/projects/ai-samantha/` at 1440×900 and 390×844, fails on any axe violation with impact `serious`/`critical`, fails if the homepage requests any video/audio asset before user interaction, and — because axe's serious/critical gate does not reliably cover target size — asserts with bounding boxes at 390 px that every visible interactive element (`a, button, summary, input, select, textarea, [role=button]`) measures at least 44 × 44 px — only `<a>` elements inside prose paragraphs are exempt; non-link controls are checked even inside a `<p>` (spec §9).
 
 - [ ] **Step 1: Install axe-core**
 
@@ -3222,7 +3252,9 @@ for (const viewport of VIEWPORTS) {
 					"a, button, summary, input, select, textarea, [role=button]",
 				);
 				for (const el of targets) {
-					if (el.closest("p")) continue; // prose inline exception (spec §9)
+					// only LINKS inside prose paragraphs are exempt (spec §9);
+					// buttons/inputs/disclosures are checked everywhere
+					if (el.matches("a") && el.closest("p")) continue;
 					const box = el.getBoundingClientRect();
 					if (box.width === 0 || box.height === 0) continue; // hidden responsive variant
 					if (box.height < 44 || box.width < 44) {
@@ -3260,7 +3292,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:a11y`
-Expected: pass. Prove it bites twice: temporarily remove `aria-label` from a `role="img"` visual (serious `aria-roles`/name violation) OR set a `.proof` color to `#555`, rebuild, expect failure; revert. Then temporarily delete the `min-height` line from `LandingFooter`'s `.col a`, rebuild, expect a tap-target failure; revert.
+Expected: pass. Prove it bites three ways, reverting after each: (1) temporarily remove `aria-label` from a `role="img"` visual (serious `aria-roles`/name violation) OR set a `.proof` color to `#555`, rebuild, expect failure; (2) delete the `min-height` line from `LandingFooter`'s `.col a`, rebuild, expect a tap-target failure; (3) add `<p><button style="width:20px;height:20px;padding:0;border:0">x</button></p>` to the closing section of `index.astro`, rebuild, expect an `interactive target under 44×44px` failure even though the button sits inside a paragraph — proving the exemption is anchor-only.
 
 ```bash
 git add scripts/check-a11y.mjs package.json pnpm-lock.yaml
