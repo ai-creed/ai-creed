@@ -5,7 +5,7 @@
 	--border: #222;
 	--fg: #e6e6e6;
 	--fg-dim: #8a8a8a;
-	--fg-muted: #7d7d7d; /* 4.6:1 on --bg; the old #6a6a6a was 3.6:1 */
+	--fg-muted: #868686; /* ≥4.5:1 on --bg and every low-alpha room-tint wash; #7d7d7d hit 4.08–4.47:1 on tinted card surfaces */
 	--accent: #ff8163;
 	--on-accent: #0d0d0d; /* text on coral fills — 7.7:1 */
 

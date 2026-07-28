@@ -6,7 +6,7 @@ interface Props {
 const { code, lang = "bash" } = Astro.props;
 ---
 
-<pre data-lang={lang}><code>{code}</code></pre>
+<pre data-lang={lang} tabindex="0" aria-label="install commands"><code>{code}</code></pre>
 
 <style>
 	pre {
