@@ -1,0 +1,142 @@
+---
+import Ai14allVisual from "~/components/Ai14allVisual.astro";
+import XavierVisual from "~/components/XavierVisual.astro";
+import SamanthaVisual from "~/components/SamanthaVisual.astro";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
+import type { Flagship } from "~/lib/flagships";
+
+interface Props {
+	flagships: Flagship[];
+}
+const { flagships } = Astro.props;
+
+const proof = flagships
+	.map((f, i) => {
+		const name = i === 0 ? f.id : f.id.replace(/^ai-/, "");
+		const a = f.data.homepage.availability;
+		return `${name} ${a === "shipping" ? "shipping now" : a}`;
+	})
+	.join(" · ");
+---
+
+<section id="system" class="hero container">
+	<div class="copy">
+		<h1 class="display">your coding agents. under your command.</h1>
+		<p class="sub">
+			one system keeps you in the loop—from parallel work at your desk, to decisions from your
+			phone, to a voice that has been watching with you.
+		</p>
+		<div class="ctas">
+			<span class="cta-desktop">
+				<Ai14allReleaseLink kind="releasePage" variant="button" label="download ai-14all" />
+			</span>
+			<a class="btn primary cta-mobile" href="/projects/ai-14all#download">get ai-14all</a>
+			<a class="btn ghost" href="#north-star">see the engineering loop</a>
+		</div>
+		<p class="proof">{proof}</p>
+	</div>
+	<div class="trio" aria-label="the three products of the system">
+		<div class="big"><Ai14allVisual variant="hero" /></div>
+		<div class="small"><XavierVisual variant="hero" /><SamanthaVisual variant="hero" /></div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+		gap: var(--s-8);
+		align-items: center;
+		padding-top: var(--s-12);
+		padding-bottom: var(--s-12);
+	}
+	.display {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: var(--fs-display);
+		line-height: 1.12;
+		text-wrap: balance;
+	}
+	.sub {
+		margin-top: var(--s-4);
+		color: var(--fg-dim);
+		max-width: 52ch;
+	}
+	.ctas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--s-3);
+		margin-top: var(--s-6);
+	}
+	.btn {
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: var(--s-3) var(--s-4); /* ≥44px */
+		font-size: var(--fs-sm);
+		font-weight: 600;
+	}
+	.btn.primary {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--on-accent);
+	}
+	.btn.primary:hover {
+		background: var(--fg);
+		border-color: var(--fg);
+		color: var(--bg);
+	}
+	.btn.ghost {
+		color: var(--fg);
+	}
+	.btn.ghost:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	.cta-desktop {
+		display: contents;
+	}
+	.cta-mobile {
+		display: none;
+	}
+	.proof {
+		margin-top: var(--s-4);
+		font-size: var(--fs-xs);
+		color: var(--fg-muted);
+	}
+	.trio {
+		display: flex;
+		flex-direction: column;
+		gap: var(--s-3);
+		min-width: 0;
+	}
+	.small {
+		display: flex;
+		gap: var(--s-3);
+		align-items: stretch;
+	}
+	.small > :global(*) {
+		flex: 1;
+		min-width: 0;
+	}
+	@media (max-width: 899px) {
+		.hero {
+			grid-template-columns: 1fr;
+			padding-top: var(--s-8);
+		}
+		.cta-desktop {
+			display: none;
+		}
+		.cta-mobile {
+			display: inline-block;
+		}
+		.btn {
+			flex: 1;
+			text-align: center;
+		}
+	}
+	@media (max-width: 519px) {
+		.small {
+			flex-direction: column;
+		}
+	}
+</style>
