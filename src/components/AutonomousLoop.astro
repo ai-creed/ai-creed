@@ -1,0 +1,153 @@
+---
+const STEPS = [
+	{
+		n: "01",
+		verb: "frame",
+		who: "ai-samantha",
+		line: "turns a messy ask into precise, scoped work",
+		chip: "early access",
+	},
+	{
+		n: "02",
+		verb: "command",
+		who: "ai-14all",
+		line: "worktrees, sessions, attention, review — the cockpit",
+		chip: "shipping",
+	},
+	{
+		n: "03",
+		verb: "execute",
+		who: "ai-whisper",
+		line: "an implementer and a reviewer converge on committed code",
+		chip: "shipped today",
+	},
+	{
+		n: "04",
+		verb: "remember",
+		who: "ai-cortex",
+		line: "decisions and gotchas persist across sessions",
+		chip: "shipped today",
+	},
+	{
+		n: "05",
+		verb: "decide",
+		who: "you",
+		line: "review the diff, make the calls that matter",
+		chip: null,
+	},
+] as const;
+---
+
+<section id="north-star" class="loop container">
+	<p class="eyebrow">north star</p>
+	<h2 class="display">describe the outcome tonight. return to decisions, not busywork.</h2>
+	<ol class="steps">
+		{
+			STEPS.map((s) => (
+				<li class="step">
+					<span class="num">{s.n}</span>
+					<span class="verb">{s.verb}</span>
+					<span class="who">{s.who}</span>
+					<span class="line">{s.line}</span>
+					{s.chip && <span class="chip">{s.chip}</span>}
+				</li>
+			))
+		}
+	</ol>
+	<p class="band">
+		ai-xavier spans the loop — presence from your pocket while it runs. <span class="chip"
+			>coming soon</span
+		>
+	</p>
+	<p class="honest">
+		the pieces above ship today and already talk to each other — samantha supervises live 14all
+		sessions, 14all drives whisper runs and remembers through cortex. the unattended night —
+		tell it, go to bed, wake up to reviewed work — is where this system is headed, not something
+		it claims today.
+	</p>
+</section>
+
+<style>
+	.loop {
+		padding: var(--s-12) var(--s-4);
+	}
+	.eyebrow {
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
+		color: var(--accent);
+	}
+	.display {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: clamp(24px, 3.4vw, 34px);
+		line-height: 1.15;
+		margin-top: var(--s-3);
+		max-width: 24ch;
+		text-wrap: balance;
+	}
+	.steps {
+		list-style: none;
+		padding: 0;
+		margin: var(--s-8) 0 0;
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: var(--s-3);
+	}
+	.step {
+		display: flex;
+		flex-direction: column;
+		gap: var(--s-1);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: var(--s-4);
+		background: var(--bg-raised);
+		font-size: var(--fs-sm);
+	}
+	.num {
+		color: var(--accent);
+		font-weight: 600;
+		font-size: var(--fs-xs);
+	}
+	.verb {
+		font-weight: 600;
+	}
+	.who {
+		color: var(--fg-dim);
+		font-size: var(--fs-xs);
+	}
+	.line {
+		color: var(--fg-dim);
+		margin-top: var(--s-2);
+	}
+	.chip {
+		margin-top: var(--s-2);
+		align-self: flex-start;
+		font-size: var(--fs-xs);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: 1px var(--s-2);
+		color: var(--fg-muted);
+	}
+	.band {
+		margin-top: var(--s-4);
+		padding: var(--s-3) var(--s-4);
+		border: 1px dashed rgba(var(--tint-xavier), 0.5);
+		border-radius: var(--radius);
+		color: var(--fg-dim);
+		font-size: var(--fs-sm);
+	}
+	.band .chip {
+		margin: 0 0 0 var(--s-2);
+	}
+	.honest {
+		margin-top: var(--s-6);
+		color: var(--fg-muted);
+		font-size: var(--fs-sm);
+		max-width: 68ch;
+	}
+	@media (max-width: 899px) {
+		.steps {
+			grid-template-columns: 1fr;
+		} /* vertical sequence on mobile */
+	}
+</style>
