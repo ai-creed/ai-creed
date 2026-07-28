@@ -10,6 +10,8 @@
 		"build": "astro build",
 		"preview": "astro preview",
 		"check": "astro check",
+		"check:media": "node scripts/check-media.mjs",
+		"check:budget": "node scripts/check-homepage-budget.mjs",
 		"format": "prettier -w .",
 		"format:check": "prettier -c .",
 		"lint": "eslint src",
