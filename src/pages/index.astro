@@ -4,6 +4,11 @@ import PromptTitle from "~/components/PromptTitle.astro";
 import ProjectCard from "~/components/ProjectCard.astro";
 import { getCollection } from "astro:content";
 import { SITE_CONTACT_EMAIL } from "~/consts";
+import { getFlagships } from "~/lib/flagships";
+
+// Temporary build-time probe until Task 16 rewrites this page.
+const flagshipCount = (await getFlagships()).length;
+console.log(`[build] flagship contract ok (${flagshipCount})`);
 
 const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
 const NUMBER_WORDS = [

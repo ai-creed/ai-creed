@@ -1,42 +1,50 @@
 ---
 name: "ai-samantha"
-tagline: "voice-first electron companion for the ai-* ecosystem"
+tagline: "ambient voice supervision for your coding agents"
 status: "private"
 order: 5
 wip: true
+video: "/ai-samantha/hero-demo.mp4"
+videoPoster: "/ai-samantha/hero-demo-poster.jpg"
 features:
-    - "local speech recognition (whisper)"
-    - "local text-to-speech (f5-tts)"
-    - "multi-turn conversation via llm adapters"
-    - "menu-bar tray popover w/ wake-word activation"
-    - "cross-session short-term memory (8 turns, 72h)"
-    - "connector contract + local server (integration surface WIP)"
+    - "supervise live ai-14all sessions — ask what's happening, hear who needs you"
+    - "keep every word on your machine — speech recognition and voice synthesis run fully locally"
+    - "hold a real conversation through the model providers you already use"
+    - "summon her from the menu bar with a wake word — no window switching"
+    - "remember the recent thread across sessions, so follow-ups just work"
+homepage:
+    featured: true
+    rank: 3
+    role: "supervision"
+    posture: "out loud"
+    availability: "early access"
+    headline: "ask what's happening. she has been watching."
+    summary: "two sessions are quiet. one needs your decision — said out loud."
+    desktopCta:
+        label: "request early access"
+        href: "mailto:vu.phan.se@gmail.com?subject=ai-samantha%20early%20access"
+    mobileCta:
+        label: "request early access"
+        href: "mailto:vu.phan.se@gmail.com?subject=ai-samantha%20early%20access"
 ---
 
 import Features from "~/components/Features.astro";
 
-<div style="position: relative; margin: var(--s-6) 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
-	<video
-		src="/ai-samantha/hero-demo.mp4"
-		autoplay
-		muted
-		loop
-		playsinline
-		style="display: block; width: 100%; height: auto;"
-	/>
-	<span style="position: absolute; top: var(--s-3); right: var(--s-3); font-size: var(--fs-xs); letter-spacing: 0.06em; padding: 2px var(--s-2); border: 1px solid var(--accent); border-radius: var(--radius); color: var(--accent); background: rgba(13, 13, 13, 0.72);">
-		coming soon
-	</span>
-</div>
-
-**Coming soon.** Samantha is still learning to hear — an early, private build that isn't ready for daily use yet. Hang tight while it comes together.
+**Early access.** samantha runs here every day as the ambient supervisor for ai-14all sessions.
+[email to try an early build](mailto:vu.phan.se@gmail.com?subject=ai-samantha%20early%20access).
 
 ## what it does
 
-ai-samantha is a voice-first companion app. Talk to it, ask what's happening across the ai-\* tools, and let it sit in your menu bar ready to answer out loud. All speech stays on your machine — no cloud STT or TTS.
+ai-samantha is the voice that has been watching with you. she supervises live ai-14all sessions,
+so you can ask what's happening without opening another screen — "two sessions are quiet. one
+needs your decision."
+
+speech recognition and voice synthesis run fully on your machine. the intelligence behind the
+answers uses your configured model providers.
 
 ## why
 
-Sometimes you want to ask a question without switching windows. Samantha is the always-on voice surface for the rest of the ecosystem.
+sometimes you want status without a screen at all. samantha is the always-on voice surface for
+the rest of the ecosystem — supervision you can talk to.
 
 <Features list={frontmatter.features} />
