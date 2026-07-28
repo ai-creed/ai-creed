@@ -1,8 +1,10 @@
 ---
 import Base from "~/layouts/Base.astro";
+import AvailabilityChip from "~/components/AvailabilityChip.astro";
 import StatusChip from "~/components/StatusChip.astro";
 import CodeBlock from "~/components/CodeBlock.astro";
 import WipNotice from "~/components/WipNotice.astro";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 import { getCollection, render } from "astro:content";
 import { Image } from "astro:assets";
 
@@ -31,6 +33,11 @@ const repoHost = data.repo ? new URL(data.repo).host + new URL(data.repo).pathna
 			<div class="title-row">
 				<h1 class="name">{data.name}</h1>
 				<div class="head-actions">
+					{
+						data.homepage && (
+							<AvailabilityChip availability={data.homepage.availability} />
+						)
+					}
 					<StatusChip status={data.status} />
 				</div>
 			</div>
@@ -68,6 +75,30 @@ const repoHost = data.repo ? new URL(data.repo).host + new URL(data.repo).pathna
 		<section class="body">
 			<Content />
 		</section>
+
+		{
+			project.id === "ai-14all" && (
+				<section id="download" class="downloads">
+					<h2># download</h2>
+					<ul>
+						{(["macUniversal", "macArm64", "windowsX64"] as const).map((kind) => (
+							<li>
+								<Ai14allReleaseLink kind={kind} variant="list" />
+							</li>
+						))}
+					</ul>
+					<p class="all">
+						every version on the{" "}
+						<Ai14allReleaseLink
+							kind="releasePage"
+							variant="inline"
+							label="releases page"
+						/>{" "}
+						· auto-updates in the background on launch
+					</p>
+				</section>
+			)
+		}
 
 		{
 			data.status !== "private" && data.install && (
@@ -161,5 +192,33 @@ const repoHost = data.repo ? new URL(data.repo).host + new URL(data.repo).pathna
 		padding-top: var(--s-4);
 		border-top: 1px solid var(--border);
 		font-size: var(--fs-sm);
+	}
+
+	.downloads {
+		margin-top: var(--s-8);
+	}
+	.downloads h2 {
+		color: var(--fg-dim);
+		font-weight: 500;
+		font-size: var(--fs-h3);
+		margin-bottom: var(--s-3);
+	}
+	.downloads ul {
+		list-style: none;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--s-2);
+	}
+	.downloads .all {
+		margin-top: var(--s-3);
+		font-size: var(--fs-sm);
+		color: var(--fg-muted);
+	}
+	.body :global(li a) {
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
 	}
 </style>
