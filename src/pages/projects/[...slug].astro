@@ -42,7 +42,13 @@ const repoHost = data.repo ? new URL(data.repo).host + new URL(data.repo).pathna
 		{
 			data.video && (
 				<div class="demo">
-					<video src={data.video} autoplay muted loop playsinline />
+					<video
+						src={data.video}
+						poster={data.videoPoster}
+						preload="none"
+						controls
+						playsinline
+					/>
 				</div>
 			)
 		}
