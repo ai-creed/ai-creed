@@ -1,0 +1,88 @@
+---
+import { getCollection } from "astro:content";
+import StatusChip from "~/components/StatusChip.astro";
+
+const supporting = (await getCollection("projects"))
+	.filter((p) => !p.data.homepage?.featured)
+	.sort((a, b) => {
+		const arch = Number(a.data.status === "archived") - Number(b.data.status === "archived");
+		return arch !== 0 ? arch : a.data.order - b.data.order;
+	});
+---
+
+<section class="engine container" aria-label="engine room">
+	<h2 class="h"># engine room</h2>
+	<p class="sub">the supporting tools the system runs on.</p>
+	<ul class="grid">
+		{
+			supporting.map((p) => (
+				<li class="card">
+					<div class="top">
+						<a class="name" href={`/projects/${p.id}`}>
+							{p.data.name}
+						</a>
+						<StatusChip status={p.data.status} />
+					</div>
+					<p class="job">{p.data.tagline}</p>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.engine {
+		padding: var(--s-8) var(--s-4);
+	}
+	.h {
+		color: var(--fg-dim);
+		font-weight: 500;
+		font-size: var(--fs-h3);
+	}
+	.sub {
+		color: var(--fg-muted);
+		font-size: var(--fs-sm);
+		margin-top: var(--s-2);
+	}
+	.grid {
+		list-style: none;
+		padding: 0;
+		margin: var(--s-4) 0 0;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: var(--s-3);
+	}
+	.card {
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: var(--s-4);
+		background: var(--bg-raised);
+	}
+	.top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--s-3);
+	}
+	.name {
+		border: none;
+		font-weight: 600;
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
+	}
+	.name:hover {
+		color: var(--accent);
+	}
+	.job {
+		margin-top: var(--s-2);
+		color: var(--fg-dim);
+		font-size: var(--fs-sm);
+	}
+	@media (max-width: 519px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
