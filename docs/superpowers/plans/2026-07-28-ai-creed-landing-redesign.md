@@ -39,6 +39,7 @@ Copied from the spec; every task's requirements implicitly include these.
 | `src/data/recently-shipped.ts`                                                                     | Editorial proof-of-momentum entries                                                        |
 | `src/content.config.ts`                                                                            | Project schema + nested `homepage` object                                                  |
 | `src/lib/flagships.ts`                                                                             | `getFlagships()` — build-failing flagship invariants                                       |
+| `src/components/Ai14allReleaseLink.astro`                                                          | The ONLY renderer of ai-14all release/download links (stamps the provenance marker)        |
 | `src/content/projects/ai-14all.mdx`                                                                | Flagship content; no download URLs                                                         |
 | `src/content/projects/ai-xavier.mdx`                                                               | NEW flagship page (coming soon, honest claims)                                             |
 | `src/content/projects/ai-samantha.mdx`                                                             | Rewritten to early access + supervision framing                                            |
@@ -254,17 +255,18 @@ git add src/styles/global.css src/components/StatusChip.astro src/components/Hea
 git commit -m "feat(tokens): coral accent, status palette, display font, a11y baseline"
 ```
 
-### Task 2: Typed data modules — downloads and recently shipped
+### Task 2: Typed data modules and the module-owned release link
 
 **Files:**
 
 - Create: `src/data/ai14all-downloads.ts`
 - Create: `src/data/recently-shipped.ts`
+- Create: `src/components/Ai14allReleaseLink.astro`
 
 **Interfaces:**
 
-- Consumes: nothing.
-- Produces: `AI14ALL_DOWNLOADS` (`{ version: string; releasePageUrl: string; assets: { macUniversal: DownloadAsset; macArm64: DownloadAsset; windowsX64: DownloadAsset } }`), `AI14ALL_DOWNLOAD_ASSETS: readonly DownloadAsset[]`, `DownloadAsset = { label: string; url: string }`, `RECENTLY_SHIPPED: readonly RecentlyShippedEntry[]`, `RecentlyShippedEntry = { date: string; project: string; summary: string; href: string }`. Later tasks import these names exactly.
+- Consumes: tokens (Task 1).
+- Produces: `AI14ALL_DOWNLOADS` (`{ version: string; releasePageUrl: string; assets: { macUniversal: DownloadAsset; macArm64: DownloadAsset; windowsX64: DownloadAsset } }`), `AI14ALL_DOWNLOAD_ASSETS: readonly DownloadAsset[]`, `DownloadAsset = { label: string; url: string }`, `RECENTLY_SHIPPED: readonly RecentlyShippedEntry[]`, `RecentlyShippedEntry = { date: string; project: string; summary: string; href: string }`; and `Ai14allReleaseLink` — the ONLY renderer of ai-14all release/download hrefs, with `interface Props { kind: "releasePage" | "macUniversal" | "macArm64" | "windowsX64"; variant: "button" | "list" | "inline"; label?: string }`, stamping `data-dl-origin="ai14all-downloads"` on its anchor (the marker `check:downloads` requires on every rendered release link). Tasks 7, 9, 10, 15, and 16 consume it; raw `<a>` release links are forbidden anywhere else.
 
 - [ ] **Step 1: Write `src/data/ai14all-downloads.ts`**
 
@@ -340,7 +342,69 @@ export const RECENTLY_SHIPPED: readonly RecentlyShippedEntry[] = [
 ];
 ```
 
-- [ ] **Step 3: Verify**
+- [ ] **Step 3: Write `src/components/Ai14allReleaseLink.astro`**
+
+Release-link rendering is centralized here (spec §5.3/§7.1 provenance): this component is the only place an ai-14all release href may be rendered, and it stamps the origin marker that Task 18's guard requires on every rendered release link. Variants own their styling internally, so no parent-scoped CSS ever needs to cross the component boundary.
+
+```astro
+---
+import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
+
+type Kind = keyof typeof AI14ALL_DOWNLOADS.assets | "releasePage";
+
+interface Props {
+	kind: Kind;
+	variant: "button" | "list" | "inline";
+	label?: string;
+}
+const { kind, variant, label } = Astro.props;
+const href =
+	kind === "releasePage" ? AI14ALL_DOWNLOADS.releasePageUrl : AI14ALL_DOWNLOADS.assets[kind].url;
+const fallback =
+	kind === "releasePage" ? "all ai-14all releases" : `↓ ${AI14ALL_DOWNLOADS.assets[kind].label}`;
+---
+
+<a class:list={["dl", variant]} href={href} data-dl-origin="ai14all-downloads"
+	>{label ?? fallback}</a
+>
+
+<style>
+	.dl {
+		font-weight: 600;
+	}
+	.dl.button {
+		display: inline-block;
+		background: var(--accent);
+		border: 1px solid var(--accent);
+		border-radius: var(--radius);
+		padding: var(--s-3) var(--s-4); /* ≥44px */
+		font-size: var(--fs-sm);
+		color: var(--on-accent);
+		text-align: center;
+	}
+	.dl.button:hover {
+		background: var(--fg);
+		border-color: var(--fg);
+		color: var(--bg);
+	}
+	.dl.list {
+		border: none;
+		color: var(--accent);
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
+	}
+	.dl.list:hover {
+		color: var(--fg);
+	}
+	.dl.inline {
+		font-weight: 400; /* inherits the global link treatment */
+	}
+</style>
+```
+
+- [ ] **Step 4: Verify**
 
 ```bash
 pnpm check
@@ -350,11 +414,11 @@ curl -sfIL "https://github.com/ai-creed/ai-14all/releases/download/v1.8.2/ai-14a
 
 Expected: `pnpm check` passes; both curls print their ok line.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/data
-git commit -m "feat(data): typed ai-14all downloads module and recently-shipped entries"
+git add src/data src/components/Ai14allReleaseLink.astro
+git commit -m "feat(data): typed download/shipped modules and the module-owned release link"
 ```
 
 ---
@@ -973,14 +1037,14 @@ git commit -m "feat(layout): skip link, main landmark, header/footer slots, per-
 
 **Interfaces:**
 
-- Consumes: `AI14ALL_DOWNLOADS.releasePageUrl` (Task 2), `SITE_GITHUB_URL` / `SITE_CONTACT_EMAIL` from `~/consts`, tokens (Task 1).
+- Consumes: `Ai14allReleaseLink` (Task 2), `SITE_GITHUB_URL` / `SITE_CONTACT_EMAIL` from `~/consts`, tokens (Task 1).
 - Produces: no props on either component. Anchor targets they link to — `#system`, `#products`, `#north-star`, `#creed` — are produced by Tasks 9, 11, 12, and 16. Both components use the shared 899 px CTA breakpoint. No Discord server exists, so "community" points at the GitHub org (the spec's "Discord/community" secondary; do not invent a Discord URL).
 
 - [ ] **Step 1: Write `src/components/LandingHeader.astro`**
 
 ```astro
 ---
-import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 ---
 
 <header class="lh">
@@ -991,7 +1055,7 @@ import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
 			<a href="#products">products</a>
 			<a href="#north-star">north star</a>
 			<a href="#creed">creed</a>
-			<a class="cta" href={AI14ALL_DOWNLOADS.releasePageUrl}>download ai-14all</a>
+			<Ai14allReleaseLink kind="releasePage" variant="button" label="download ai-14all" />
 		</nav>
 		<details class="nav-mobile">
 			<summary>menu</summary>
@@ -1575,7 +1639,7 @@ git commit -m "feat(landing): css product visuals for the three flagships"
 
 **Interfaces:**
 
-- Consumes: `Flagship` + `getFlagships()` ordering (Task 4), the three visuals (Task 8), `AI14ALL_DOWNLOADS.releasePageUrl` (Task 2).
+- Consumes: `Flagship` + `getFlagships()` ordering (Task 4), the three visuals (Task 8), `Ai14allReleaseLink` (Task 2).
 - Produces: `interface Props { flagships: Flagship[] }` (rank-sorted). Section id `#system`. The proof line derives from `flagships[n].data.homepage.availability` — never hand-written.
 
 - [ ] **Step 1: Write `src/components/EcosystemHero.astro`**
@@ -1587,7 +1651,7 @@ Hero copy is spec-verbatim. CTAs: desktop primary → release page; mobile prima
 import Ai14allVisual from "~/components/Ai14allVisual.astro";
 import XavierVisual from "~/components/XavierVisual.astro";
 import SamanthaVisual from "~/components/SamanthaVisual.astro";
-import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 import type { Flagship } from "~/lib/flagships";
 
 interface Props {
@@ -1612,9 +1676,9 @@ const proof = flagships
 			phone, to a voice that has been watching with you.
 		</p>
 		<div class="ctas">
-			<a class="btn primary cta-desktop" href={AI14ALL_DOWNLOADS.releasePageUrl}
-				>download ai-14all</a
-			>
+			<span class="cta-desktop">
+				<Ai14allReleaseLink kind="releasePage" variant="button" label="download ai-14all" />
+			</span>
 			<a class="btn primary cta-mobile" href="/projects/ai-14all#download">get ai-14all</a>
 			<a class="btn ghost" href="#north-star">see the engineering loop</a>
 		</div>
@@ -1676,6 +1740,9 @@ const proof = flagships
 	.btn.ghost:hover {
 		border-color: var(--accent);
 		color: var(--accent);
+	}
+	.cta-desktop {
+		display: contents;
 	}
 	.cta-mobile {
 		display: none;
@@ -1745,7 +1812,7 @@ git commit -m "feat(landing): ecosystem hero with derived proof line"
 
 **Interfaces:**
 
-- Consumes: `Flagship` + `Availability` (Task 4), `AI14ALL_DOWNLOAD_ASSETS` + `AI14ALL_DOWNLOADS` (Task 2), status tokens (Task 1).
+- Consumes: `Flagship` + `Availability` (Task 4), `Ai14allReleaseLink` (Task 2), status tokens (Task 1).
 - Produces: `AvailabilityChip` with `interface Props { availability: Availability }` (also used by Task 15); `FlagshipChapter` with `interface Props { flagship: Flagship; id?: string }` — `id` lets the first chapter carry `#products`. The chapter renders the numbered stage label, display headline, summary, a `<slot />` for chapter copy, a `<slot name="visual" />`, and per-flagship actions. Task 16 mounts one per flagship with the matching visual in the slot.
 
 - [ ] **Step 1: Write `src/components/AvailabilityChip.astro`**
@@ -1795,7 +1862,7 @@ const cls = { shipping: "done", "coming soon": "waiting", "early access": "ready
 ```astro
 ---
 import AvailabilityChip from "~/components/AvailabilityChip.astro";
-import { AI14ALL_DOWNLOADS, AI14ALL_DOWNLOAD_ASSETS } from "~/data/ai14all-downloads";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 import type { Flagship } from "~/lib/flagships";
 
 interface Props {
@@ -1822,10 +1889,10 @@ const detailsHref = `/projects/${flagship.id}`;
 				{
 					flagship.id === "ai-14all" ? (
 						<>
-							{AI14ALL_DOWNLOAD_ASSETS.map((a) => (
-								<a class="btn primary cta-desktop" href={a.url}>
-									↓ {a.label}
-								</a>
+							{(["macUniversal", "macArm64", "windowsX64"] as const).map((kind) => (
+								<span class="cta-desktop">
+									<Ai14allReleaseLink kind={kind} variant="button" />
+								</span>
 							))}
 							<a class="btn primary cta-mobile" href={hp.mobileCta.href}>
 								view desktop downloads
@@ -1850,8 +1917,12 @@ const detailsHref = `/projects/${flagship.id}`;
 				flagship.id === "ai-14all" && (
 					<p class="fineprint">
 						all versions on the{" "}
-						<a href={AI14ALL_DOWNLOADS.releasePageUrl}>releases page</a> ·
-						source-available
+						<Ai14allReleaseLink
+							kind="releasePage"
+							variant="inline"
+							label="releases page"
+						/>
+						{" · source-available"}
 					</p>
 				)
 			}
@@ -1933,6 +2004,9 @@ const detailsHref = `/projects/${flagship.id}`;
 	.btn.ghost:hover {
 		border-color: var(--accent);
 		color: var(--accent);
+	}
+	.cta-desktop {
+		display: contents;
 	}
 	.cta-mobile {
 		display: none;
@@ -2188,7 +2262,7 @@ import { RECENTLY_SHIPPED } from "~/data/recently-shipped";
 				<li class="row">
 					<span class="date">{e.date}</span>
 					<span class="proj">{e.project}</span>
-					<a class="sum" href={e.href}>
+					<a class="sum" href={e.href} data-dl-origin="recently-shipped">
 						{e.summary}
 					</a>
 				</li>
@@ -2517,7 +2591,7 @@ Lands BEFORE homepage assembly so `/projects/ai-14all#download` exists the momen
 
 **Interfaces:**
 
-- Consumes: `AvailabilityChip` (Task 10), `AI14ALL_DOWNLOADS`/`AI14ALL_DOWNLOAD_ASSETS` (Task 2), `data.homepage` (Task 4).
+- Consumes: `AvailabilityChip` (Task 10), `Ai14allReleaseLink` (Task 2), `data.homepage` (Task 4).
 - Produces: `/projects/ai-14all/` contains `<section id="download">` — the target of every mobile "get ai-14all" route; flagship pages render the same availability label as the homepage from the same frontmatter field; every non-inline link on project pages meets the 44 px target contract.
 
 - [ ] **Step 1: Add imports and render the chip**
@@ -2526,7 +2600,7 @@ In the frontmatter add:
 
 ```ts
 import AvailabilityChip from "~/components/AvailabilityChip.astro";
-import { AI14ALL_DOWNLOADS, AI14ALL_DOWNLOAD_ASSETS } from "~/data/ai14all-downloads";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 ```
 
 In `.head-actions`, before `<StatusChip …/>`, add:
@@ -2545,14 +2619,15 @@ Immediately after the `<section class="body"><Content /></section>` block, add:
 		<section id="download" class="downloads">
 			<h2># download</h2>
 			<ul>
-				{AI14ALL_DOWNLOAD_ASSETS.map((a) => (
+				{(["macUniversal", "macArm64", "windowsX64"] as const).map((kind) => (
 					<li>
-						<a href={a.url}>↓ {a.label}</a>
+						<Ai14allReleaseLink kind={kind} variant="list" />
 					</li>
 				))}
 			</ul>
 			<p class="all">
-				every version on the <a href={AI14ALL_DOWNLOADS.releasePageUrl}>releases page</a> ·
+				every version on the{" "}
+				<Ai14allReleaseLink kind="releasePage" variant="inline" label="releases page" /> ·
 				auto-updates in the background on launch
 			</p>
 		</section>
@@ -2578,14 +2653,6 @@ And in the `<style>` block add (the `li a` rule keeps markdown list links — ch
 	display: flex;
 	flex-direction: column;
 	gap: var(--s-2);
-}
-.downloads a {
-	border: none;
-	color: var(--accent);
-	min-height: 44px;
-	min-width: 44px;
-	display: inline-flex;
-	align-items: center;
 }
 .downloads .all {
 	margin-top: var(--s-3);
@@ -2620,7 +2687,7 @@ git commit -m "feat(projects): availability chips and module-fed download anchor
 
 **Interfaces:**
 
-- Consumes: every component from Tasks 7–13, `getFlagships`/`FlagshipId` (Task 4), `AI14ALL_DOWNLOADS` (Task 2), Base slots + `ogImage` (Task 6), `/og-home.png` (Task 14), and the `/projects/ai-14all#download` anchor (Task 15) that every mobile CTA below routes to.
+- Consumes: every component from Tasks 7–13, `getFlagships`/`FlagshipId` (Task 4), `Ai14allReleaseLink` (Task 2), Base slots + `ogImage` (Task 6), `/og-home.png` (Task 14), and the `/projects/ai-14all#download` anchor (Task 15) that every mobile CTA below routes to.
 - Produces: the shipped homepage. The `VISUALS` map is typed `Record<FlagshipId, …>` — the spec's exhaustive flagship→visual guard: removing a flagship or forgetting a visual is a compile error.
 
 - [ ] **Step 1: Replace `src/pages/index.astro` entirely**
@@ -2641,7 +2708,7 @@ import AutonomousLoop from "~/components/AutonomousLoop.astro";
 import RecentlyShipped from "~/components/RecentlyShipped.astro";
 import Creed from "~/components/Creed.astro";
 import EngineRoom from "~/components/EngineRoom.astro";
-import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 import { getFlagships, type FlagshipId } from "~/lib/flagships";
 
 const flagships = await getFlagships();
@@ -2691,9 +2758,9 @@ const CHAPTER_COPY: Record<FlagshipId, string> = {
 	<section class="closing container">
 		<h2 class="display">run your agents in ai-14all. stay for the loop we're building.</h2>
 		<div class="ctas">
-			<a class="btn primary cta-desktop" href={AI14ALL_DOWNLOADS.releasePageUrl}
-				>download ai-14all</a
-			>
+			<span class="cta-desktop">
+				<Ai14allReleaseLink kind="releasePage" variant="button" label="download ai-14all" />
+			</span>
 			<a class="btn primary cta-mobile" href="/projects/ai-14all#download">get ai-14all</a>
 			<a class="btn ghost" href="https://github.com/ai-creed">community — github</a>
 		</div>
@@ -2746,6 +2813,9 @@ const CHAPTER_COPY: Record<FlagshipId, string> = {
 	.btn.ghost:hover {
 		border-color: var(--accent);
 		color: var(--accent);
+	}
+	.cta-desktop {
+		display: contents;
 	}
 	.cta-mobile {
 		display: none;
@@ -3023,7 +3093,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 **Interfaces:**
 
 - Consumes: `src/data/ai14all-downloads.ts` and `src/data/recently-shipped.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `typescript` (the already-pinned devDependency, for the constant-folding pass), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so adjacent-literal splits like `"/releases/" + "latest"` collapse and fail; a TypeScript constant-folding pass (via the pinned `typescript` devDependency) evaluates const string pieces assembled with `+` or template literals across code files, `.astro` frontmatter, and template expressions — frontmatter constants seed the template fold — so separate-variable and frontmatter-to-template constructions fail too; `recently-shipped.ts` is exempt only from the release-page and version rules — an asset download URL there fails like anywhere else; and every BUILT ai-14all release-page link must equal a module-derived destination, whatever expression produced it. These three layers form the import allowlist; the sole residual (cross-file smuggling of individually innocent pieces) can, by the rendered allowlist, only reproduce an allowed current destination — a wrong or stale one cannot render.
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so adjacent-literal splits like `"/releases/" + "latest"` collapse and fail; a TypeScript constant-folding pass (via the pinned `typescript` devDependency) evaluates const string pieces assembled with `+` or template literals across code files, `.astro` frontmatter, and template expressions — frontmatter constants seed the template fold — so separate-variable and frontmatter-to-template constructions fail too; `recently-shipped.ts` is exempt only from the release-page and version rules — an asset download URL there fails like anywhere else; and every BUILT ai-14all release-page link must equal a module-derived destination, whatever expression produced it. Folding additionally evaluates `[…].join(sep)` over foldable elements. And the decisive layer: release-link rendering is centralized in the module-owned `Ai14allReleaseLink` component (Task 2; `RecentlyShipped` stamps its own module's links), so every BUILT release-pattern anchor must BOTH equal a module-derived destination AND carry the `data-dl-origin` marker — an attribute token that is itself banned (normalized) outside the two owner components. Ordinary build-time construction is closed end to end: literal, adjacent-split, separate-variable, joined, frontmatter-to-template, and imported-pieces assemblies all fail — the last at the rendered-origin layer, because a hand-assembled link renders markerless.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -3079,18 +3149,31 @@ const allowedPages = new Set([
 	AI14ALL_DOWNLOADS.releasePageUrl,
 	...RECENTLY_SHIPPED.map((e) => e.href).filter((h) => h.startsWith(RELEASES_PREFIX)),
 ]);
+const ORIGIN_RE = /data-dl-origin="(?:ai14all-downloads|recently-shipped)"/;
 for (const page of pages) {
 	const html = readFileSync(page, "utf8");
-	for (const [, href] of html.matchAll(/href="([^"]*\/releases\/download\/[^"]*)"/g)) {
-		if (!allowed.has(href)) errors.push(`download link bypasses module in ${page}: ${href}`);
-	}
-	// however a release-page URL was constructed in source, the RENDERED link
-	// must be a module-derived destination
-	for (const [, href] of html.matchAll(
-		/href="([^"]*github\.com\/ai-creed\/ai-14all\/releases[^"]*)"/g,
-	)) {
-		if (!href.includes("/releases/download/") && !allowedPages.has(href)) {
+	// Origin, not just equality: every rendered release-pattern anchor must BOTH
+	// match a module-derived destination AND carry the module-owned origin
+	// marker stamped by Ai14allReleaseLink / RecentlyShipped. A hand-assembled
+	// link renders markerless and fails, however its href was constructed —
+	// including from imported pieces the source scan cannot fold.
+	for (const [tag] of html.matchAll(/<a\b[^>]*>/g)) {
+		const hrefMatch = tag.match(/href="([^"]*)"/);
+		if (!hrefMatch) continue;
+		const href = hrefMatch[1];
+		const isDownload = href.includes("/releases/download/");
+		const isReleasePage = !isDownload && href.includes("github.com/ai-creed/ai-14all/releases");
+		if (!isDownload && !isReleasePage) continue;
+		if (isDownload && !allowed.has(href)) {
+			errors.push(`download link bypasses module in ${page}: ${href}`);
+		}
+		if (isReleasePage && !allowedPages.has(href)) {
 			errors.push(`release-page link not derived from the data modules in ${page}: ${href}`);
+		}
+		if (!ORIGIN_RE.test(tag)) {
+			errors.push(
+				`release link rendered without a module-owned origin marker in ${page}: ${href}`,
+			);
 		}
 	}
 	for (const bad of ["apps.apple.com", "testflight.apple.com", "itms-services:"]) {
@@ -3111,15 +3194,24 @@ if (!readFileSync(anchorPage, "utf8").includes('id="download"')) {
 //        files, .astro frontmatter, AND template expressions, with frontmatter
 //        constants seeding the template fold — so separate-variable and
 //        frontmatter-to-template construction fail too;
-//    (c) the rendered-output allowlist above: whatever expression survives
-//        must still RENDER a module-derived destination.
-// Residual: cross-file smuggling of individually innocent pieces can, by (c),
-// only ever reproduce an ALLOWED current destination — a wrong or stale one
-// cannot render. ai14all-downloads.ts is fully exempt (it is the carrier);
-// recently-shipped.ts is exempt only from release-PAGE and version rules —
-// an asset download URL there fails like anywhere else.
+//    (c) rendered-output ORIGIN: release-link rendering is centralized in the
+//        module-owned Ai14allReleaseLink component (RecentlyShipped renders its
+//        own module's links), which stamps data-dl-origin on the anchor. Every
+//        rendered release-pattern anchor must carry that marker AND equal an
+//        allowed destination — so any hand-assembled construction, including
+//        imported pieces or forms folding cannot see, renders markerless and
+//        fails. The marker attribute itself is banned (normalized) outside its
+//        two owner components, so it cannot be forged by ordinary construction.
+// ai14all-downloads.ts is fully exempt (it is the carrier); recently-shipped.ts
+// is exempt only from release-PAGE and version rules — an asset download URL
+// there fails like anywhere else.
 const DOWNLOADS_MODULE = join("src", "data", "ai14all-downloads.ts");
 const SHIPPED_MODULE = join("src", "data", "recently-shipped.ts");
+// The ONLY files allowed to emit the rendered-origin marker attribute:
+const MARKER_ALLOWED = new Set([
+	join("src", "components", "Ai14allReleaseLink.astro"),
+	join("src", "components", "RecentlyShipped.astro"),
+]);
 const FLAGSHIP_MDX = new Set([
 	join("src", "content", "projects", "ai-14all.mdx"),
 	join("src", "content", "projects", "ai-xavier.mdx"),
@@ -3163,6 +3255,17 @@ function foldWithConsts(code, file, seed = new Map()) {
 				out += v + span.literal.text;
 			}
 			return out;
+		}
+		if (
+			ts.isCallExpression(node) &&
+			ts.isPropertyAccessExpression(node.expression) &&
+			node.expression.name.text === "join" &&
+			ts.isArrayLiteralExpression(node.expression.expression)
+		) {
+			const sep = node.arguments.length === 0 ? "," : valueOf(node.arguments[0]);
+			if (sep === undefined) return undefined;
+			const parts = node.expression.expression.elements.map(valueOf);
+			return parts.every((p) => p !== undefined) ? parts.join(sep) : undefined;
 		}
 		return undefined;
 	};
@@ -3242,6 +3345,9 @@ for (const file of sources) {
 	if (squashed.includes("/releases/download/")) {
 		errors.push(`hand-written download URL outside the downloads module: ${file}`);
 	}
+	if (squashed.includes("data-dl-origin") && !MARKER_ALLOWED.has(file)) {
+		errors.push(`provenance marker outside its owner components: ${file}`);
+	}
 	if (file === SHIPPED_MODULE) continue; // may carry release-page hrefs + version summaries
 	if (squashed.includes("github.com/ai-creed/ai-14all/releases")) {
 		errors.push(`hand-written ai-14all release URL outside the data modules: ${file}`);
@@ -3281,7 +3387,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites nine ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it); (8) the separate-variable fixture — add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = root + rel + tip;` to `LandingHeader.astro`'s frontmatter → `constant-folded release destination` failure, even though no contiguous or adjacent-literal form exists anywhere in the file (only `pnpm check:downloads` needs to run for this bite; revert immediately); (9) the frontmatter-to-template fixture — in `LandingHeader.astro`, add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest";` to the frontmatter and `<a href={root + rel + tip}>x</a>` to the template → `constant-folded release destination` failure, because the rendered expression folds with the frontmatter's constants.
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites eleven ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it); (8) the separate-variable fixture — add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = root + rel + tip;` to `LandingHeader.astro`'s frontmatter → `constant-folded release destination` failure, even though no contiguous or adjacent-literal form exists anywhere in the file (only `pnpm check:downloads` needs to run for this bite; revert immediately); (9) the frontmatter-to-template fixture — in `LandingHeader.astro`, add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest";` to the frontmatter and `<a href={root + rel + tip}>x</a>` to the template → `constant-folded release destination` failure, because the rendered expression folds with the frontmatter's constants; (10) the join fixture — in `LandingHeader.astro`'s frontmatter add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = [root, rel, tip].join("");` → `constant-folded release destination` failure (`join` over foldable elements folds); (11) the imported-pieces fixture — create `src/lib/evil-pieces.ts` exporting the same `root`/`rel`/`tip` constants, import them in `LandingHeader.astro`, and render `<a href={root + rel + tip}>x</a>` in the template, then run `pnpm build && pnpm check:downloads` → `release link rendered without a module-owned origin marker` failure (cross-file pieces evade folding by design; the rendered-origin layer catches whatever they assemble); delete the helper file and revert.
 
 ```bash
 git add scripts/check-downloads.mjs package.json
