@@ -16,18 +16,20 @@ src/pages/projects/[...slug].astro     # the rendering template (don't usually t
 
 Validated by zod in `src/content.config.ts`. Build fails fast on violations.
 
-| Field        | Type                                | Notes                                                    |
-| ------------ | ----------------------------------- | -------------------------------------------------------- |
-| `name`       | string                              | Display name                                             |
-| `tagline`    | string                              | One line. Lowercase. Sells the project, not describes it |
-| `status`     | `"public" \| "private" \| "stable"` | `public` requires `repo` + `install`                     |
-| `order`      | number                              | Sort order on the index page                             |
-| `repo`       | string                              | Required if `public`. Full GitHub URL                    |
-| `install`    | string (yaml block scalar)          | Required if `public`. CLI command users copy-paste       |
-| `features`   | string[] (3-6 items)                | Hard-capped at 6. Cap is load-bearing for layout         |
-| `screenshot` | image                               | Optional. Loaded as Astro image                          |
-| `video`      | string                              | Optional. URL                                            |
-| `wip`        | boolean                             | Optional. Renders a WIP notice                           |
+| Field         | Type                                              | Notes                                                                                                  |
+| ------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `name`        | string                                            | Display name                                                                                           |
+| `tagline`     | string                                            | One line. Lowercase. Sells the project, not describes it                                               |
+| `status`      | `"public" \| "private" \| "stable" \| "archived"` | `public` requires `repo` + `install`                                                                   |
+| `order`       | number                                            | Sort order on the index page                                                                           |
+| `repo`        | string                                            | Required if `public`. Full GitHub URL                                                                  |
+| `install`     | string (yaml block scalar)                        | Required if `public`. CLI command users copy-paste                                                     |
+| `features`    | string[] (3-6 items)                              | Hard-capped at 6. Cap is load-bearing for layout                                                       |
+| `screenshot`  | image                                             | Optional. Loaded as Astro image                                                                        |
+| `video`       | string                                            | Optional. URL                                                                                          |
+| `videoPoster` | string                                            | Required whenever `video` is set. Click-to-play contract                                               |
+| `wip`         | boolean                                           | Optional. Renders a WIP notice                                                                         |
+| `homepage`    | object                                            | Optional, nested. Featured flagships only — set/rank/CTAs are build-enforced by `src/lib/flagships.ts` |
 
 ## Voice
 
