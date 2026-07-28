@@ -1,0 +1,95 @@
+---
+interface Props {
+	variant?: "hero" | "chapter";
+}
+const { variant = "chapter" } = Astro.props;
+---
+
+<div
+	class:list={["root", variant]}
+	role="img"
+	aria-label="ai-xavier on a phone: a live session, an agent question, and answer, wait, or interrupt actions"
+>
+	<div class="notch"></div>
+	<div class="session">
+		<span class="live">● live</span>
+		<span class="sname">ai-14all · extract-audit-log</span>
+	</div>
+	<p class="ask">
+		agent: the audit table can be truncated or archived before migration — which do you want?
+	</p>
+	<div class="acts">
+		<span class="act primary">answer</span>
+		<span class="act">wait</span>
+		<span class="act">interrupt</span>
+	</div>
+	<p class="note">runs on your desktop · phone is presence</p>
+</div>
+
+<style>
+	.root {
+		background: rgba(var(--tint-xavier), 0.07);
+		border: 1px solid rgba(var(--tint-xavier), 0.25);
+		border-radius: 16px; /* rounded device geometry */
+		padding: var(--s-4);
+		max-width: 260px;
+		font-family: var(--font-mono);
+		font-size: var(--fs-xs);
+		display: flex;
+		flex-direction: column;
+		gap: var(--s-3);
+	}
+	.notch {
+		width: 64px;
+		height: 5px;
+		border-radius: 3px;
+		background: rgba(var(--tint-xavier), 0.35);
+		margin: 0 auto;
+	}
+	.session {
+		display: flex;
+		gap: var(--s-2);
+		align-items: center;
+		color: var(--fg-dim);
+	}
+	.live {
+		color: var(--status-done);
+	}
+	.sname {
+		color: var(--fg);
+	}
+	.ask {
+		background: var(--bg-raised);
+		border: 1px solid rgba(var(--tint-xavier), 0.25);
+		border-radius: 10px;
+		padding: var(--s-3);
+		color: var(--fg);
+		line-height: 1.5;
+	}
+	.acts {
+		display: flex;
+		gap: var(--s-2);
+	}
+	.act {
+		border: 1px solid rgba(var(--tint-xavier), 0.4);
+		border-radius: 999px;
+		padding: var(--s-1) var(--s-3);
+		color: var(--fg);
+	}
+	.act.primary {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--on-accent);
+	}
+	.note {
+		color: var(--fg-muted);
+		text-align: center;
+	}
+	.root.hero {
+		max-width: 200px;
+		padding: var(--s-3);
+	}
+	.root.hero .note {
+		display: none;
+	}
+</style>

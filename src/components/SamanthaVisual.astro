@@ -1,0 +1,93 @@
+---
+interface Props {
+	variant?: "hero" | "chapter";
+}
+const { variant = "chapter" } = Astro.props;
+---
+
+<div
+	class:list={["root", variant]}
+	role="img"
+	aria-label="ai-samantha's orb speaking a status: two sessions are quiet, one needs your decision"
+>
+	<div class="orb"></div>
+	<div class="wave" aria-hidden="true">
+		<i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+	</div>
+	<p class="line">"two sessions are quiet. one needs your decision."</p>
+</div>
+
+<style>
+	.root {
+		background: rgba(var(--tint-samantha), 0.08);
+		border: 1px solid rgba(var(--tint-samantha), 0.26);
+		border-radius: var(--radius);
+		padding: var(--s-6) var(--s-4);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--s-4);
+		font-family: var(--font-mono);
+	}
+	.orb {
+		width: 72px;
+		height: 72px;
+		border-radius: 50%;
+		background: radial-gradient(
+			circle at 35% 30%,
+			rgba(var(--tint-samantha), 0.9),
+			rgba(var(--tint-samantha), 0.25) 60%,
+			transparent 75%
+		);
+		box-shadow: 0 0 32px 4px rgba(var(--tint-samantha), 0.28); /* soft glow, static */
+	}
+	.wave {
+		display: flex;
+		gap: 3px;
+		align-items: flex-end;
+		height: 16px;
+	}
+	.wave i {
+		width: 3px;
+		background: rgba(var(--tint-samantha), 0.8);
+		border-radius: 1px;
+	}
+	.wave i:nth-child(1) {
+		height: 5px;
+	}
+	.wave i:nth-child(2) {
+		height: 10px;
+	}
+	.wave i:nth-child(3) {
+		height: 16px;
+	}
+	.wave i:nth-child(4) {
+		height: 8px;
+	}
+	.wave i:nth-child(5) {
+		height: 13px;
+	}
+	.wave i:nth-child(6) {
+		height: 6px;
+	}
+	.wave i:nth-child(7) {
+		height: 11px;
+	}
+	.line {
+		color: var(--fg);
+		font-size: var(--fs-sm);
+		text-align: center;
+		max-width: 30ch;
+	}
+	.root.hero {
+		padding: var(--s-4) var(--s-3);
+		gap: var(--s-3);
+	}
+	.root.hero .orb {
+		width: 48px;
+		height: 48px;
+	}
+	.root.hero .line {
+		font-size: var(--fs-xs);
+	}
+</style>

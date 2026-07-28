@@ -1,0 +1,140 @@
+---
+interface Props {
+	variant?: "hero" | "chapter";
+}
+const { variant = "chapter" } = Astro.props;
+---
+
+<div
+	class:list={["root", variant]}
+	role="img"
+	aria-label="ai-14all session list: one agent working, one ready for review, one waiting on a decision"
+>
+	<div class="bar">
+		<span class="win-dot"></span><span class="win-dot"></span><span class="win-dot"></span><span
+			class="title">ai-14all — worktrees</span
+		>
+	</div>
+	<ul class="sessions">
+		<li>
+			<span class="dot idle"></span><span class="name">fix-payments-retry</span><span
+				class="state s-idle">working · quiet</span
+			>
+		</li>
+		<li>
+			<span class="dot done"></span><span class="name">migrate-config-schema</span><span
+				class="state s-done">ready · tests passed</span
+			>
+		</li>
+		<li class="needs">
+			<span class="dot waiting breath"></span><span class="name">extract-audit-log</span><span
+				class="state s-wait">waiting · needs a decision</span
+			>
+		</li>
+	</ul>
+	<div class="review">review: 2 inline comments → agent fixing in place</div>
+</div>
+
+<style>
+	.root {
+		background: rgba(var(--tint-14all), 0.06);
+		border: 1px solid rgba(var(--tint-14all), 0.22);
+		border-radius: var(--radius); /* square geometry */
+		font-family: var(--font-mono);
+		font-size: var(--fs-sm);
+		overflow: hidden;
+	}
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: var(--s-2);
+		padding: var(--s-2) var(--s-3);
+		border-bottom: 1px solid rgba(var(--tint-14all), 0.22);
+		color: var(--fg-muted);
+		font-size: var(--fs-xs);
+	}
+	.win-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--border);
+	}
+	.title {
+		margin-left: var(--s-2);
+	}
+	.sessions {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.sessions li {
+		display: flex;
+		align-items: center;
+		gap: var(--s-3);
+		padding: var(--s-3);
+		border-bottom: 1px solid rgba(var(--tint-14all), 0.12);
+	}
+	.sessions li.needs {
+		background: rgba(var(--tint-14all), 0.08);
+	}
+	.dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		flex: none;
+	}
+	.dot.idle {
+		background: var(--status-idle);
+	}
+	.dot.done {
+		background: var(--status-done);
+	}
+	.dot.waiting {
+		background: var(--status-waiting);
+	}
+	/* the single attention pulse: dot stays status-gold, the breathing glow is coral (spec §4.1) */
+	.breath {
+		animation: breathe 3.2s ease-in-out infinite;
+	}
+	@keyframes breathe {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgba(255, 129, 99, 0);
+			opacity: 0.65;
+		}
+		50% {
+			box-shadow: 0 0 0 6px rgba(255, 129, 99, 0.22);
+			opacity: 1;
+		}
+	}
+	.name {
+		color: var(--fg);
+	}
+	.state {
+		margin-left: auto;
+		font-size: var(--fs-xs);
+	}
+	.s-idle {
+		color: var(--status-idle);
+	}
+	.s-done {
+		color: var(--status-done);
+	}
+	.s-wait {
+		color: var(--status-waiting);
+	}
+	.review {
+		padding: var(--s-2) var(--s-3);
+		color: var(--fg-dim);
+		font-size: var(--fs-xs);
+	}
+	.root.hero {
+		font-size: var(--fs-xs);
+	}
+	.root.hero .sessions li {
+		padding: var(--s-2) var(--s-3);
+	}
+	.root.hero .review {
+		display: none;
+	}
+</style>
