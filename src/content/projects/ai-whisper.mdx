@@ -5,15 +5,16 @@ status: "public"
 order: 3
 repo: "https://github.com/ai-creed/ai-whisper"
 install: |
-  npm install -g ai-whisper
+    npm install -g ai-whisper
 features:
-  - "structured workflows — spec-driven-development, ralph-loop, complex-bug-fixing, deliberation"
-  - "single-baton relay — one owner at a time, not a swarm"
-  - "role-agnostic — workflows assign the roles (today: implementer + reviewer)"
-  - "autonomous loops gated by an llm evaluator"
-  - "pausable, resumable runs — pause a healthy run mid-flight, recover a stuck one, don't restart"
-  - "real mounted claude / codex / ezio sessions as the source of truth"
+    - "structured workflows — spec-driven-development, ralph-loop, complex-bug-fixing, deliberation"
+    - "single-baton relay — one owner at a time, not a swarm"
+    - "role-agnostic — workflows assign the roles (today: implementer + reviewer)"
+    - "autonomous loops gated by an llm evaluator"
+    - "pausable, resumable runs — pause a healthy run mid-flight, recover a stuck one, don't restart"
+    - "real mounted claude / codex / ezio sessions as the source of truth"
 ---
+
 import Features from "~/components/Features.astro";
 
 > v0.7.0 — open source, on npm, actively used personally.
@@ -43,12 +44,19 @@ A workflow is a structured loop — phases, gates, round budgets — not a long 
 
 Whichever you pick, you write the spec, goal, or bug report; the run converges on the criteria you set — so a precise artifact is most of the outcome.
 
-Autonomous covers the *loop*, not the ship decision. A finished run is a strong draft: you still read the diff, run it, and QA it before it lands. ai-whisper does the convergence and hands you the full trail to judge fast.
+Autonomous covers the _loop_, not the ship decision. A finished run is a strong draft: you still read the diff, run it, and QA it before it lands. ai-whisper does the convergence and hands you the full trail to judge fast.
 
 ## see it run
 
 A real `spec-driven-development` run: Claude (left) and Codex (middle) work in their own mounted sessions while the dashboard (right) tracks the baton handoffs and per-phase verdicts.
 
 <div style="margin: var(--s-4) 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
-  <video src="/ai-whisper/workflow-demo.mp4" autoplay muted loop playsinline style="display: block; width: 100%; height: auto;" />
+	<video
+		src="/ai-whisper/workflow-demo.mp4"
+		autoplay
+		muted
+		loop
+		playsinline
+		style="display: block; width: 100%; height: auto;"
+	/>
 </div>

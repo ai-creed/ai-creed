@@ -10,11 +10,18 @@ interface Props {
 }
 const { slug, name, tagline, status, wip } = Astro.props;
 ---
+
 <a class="card" href={`/projects/${slug}`}>
 	<div class="top">
 		<span class="name">
 			{name}
-			{wip && <span class="wip-tag" title="work in progress">[wip]</span>}
+			{
+				wip && (
+					<span class="wip-tag" title="work in progress">
+						[wip]
+					</span>
+				)
+			}
 		</span>
 		<StatusChip status={status} />
 	</div>
@@ -34,8 +41,12 @@ const { slug, name, tagline, status, wip } = Astro.props;
 		text-decoration: none;
 		transition: border-color var(--dur) ease;
 	}
-	.card:hover { border-color: var(--accent); }
-	.card:hover .arrow { color: var(--accent); }
+	.card:hover {
+		border-color: var(--accent);
+	}
+	.card:hover .arrow {
+		color: var(--accent);
+	}
 	.top {
 		display: flex;
 		justify-content: space-between;
@@ -43,14 +54,20 @@ const { slug, name, tagline, status, wip } = Astro.props;
 		gap: var(--s-3);
 		margin-bottom: var(--s-2);
 	}
-	.name { font-size: var(--fs-base); font-weight: 600; }
+	.name {
+		font-size: var(--fs-base);
+		font-weight: 600;
+	}
 	.wip-tag {
 		margin-left: var(--s-2);
 		color: var(--warn);
 		font-weight: 500;
 		font-size: var(--fs-xs);
 	}
-	.tagline { color: var(--fg-dim); font-size: var(--fs-sm); }
+	.tagline {
+		color: var(--fg-dim);
+		font-size: var(--fs-sm);
+	}
 	.arrow {
 		position: absolute;
 		right: var(--s-4);

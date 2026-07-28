@@ -5,6 +5,7 @@ interface Props {
 }
 const { code, lang = "bash" } = Astro.props;
 ---
+
 <pre data-lang={lang}><code>{code}</code></pre>
 
 <style>

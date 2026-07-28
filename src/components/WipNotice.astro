@@ -1,6 +1,7 @@
 ---
 import { SITE_CONTACT_EMAIL } from "~/consts";
 ---
+
 <aside class="wip" role="note" aria-label="work in progress">
 	<p class="line">
 		<span class="tag">[wip]</span>
@@ -21,12 +22,18 @@ import { SITE_CONTACT_EMAIL } from "~/consts";
 		background: var(--bg-raised);
 		font-size: var(--fs-sm);
 	}
-	.line { margin: 0; }
-	.line + .line { margin-top: var(--s-2); }
+	.line {
+		margin: 0;
+	}
+	.line + .line {
+		margin-top: var(--s-2);
+	}
 	.tag {
 		color: var(--warn);
 		font-weight: 600;
 		margin-right: var(--s-2);
 	}
-	.invite { color: var(--fg-dim); }
+	.invite {
+		color: var(--fg-dim);
+	}
 </style>

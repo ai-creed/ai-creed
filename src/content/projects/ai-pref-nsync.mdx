@@ -5,17 +5,18 @@ status: "archived"
 order: 6
 repo: "https://github.com/ai-creed/ai-pref-nsync"
 install: |
-  git clone git@github.com:ai-creed/ai-pref-nsync.git ~/.ai-pref-nsync
-  cd ~/.ai-pref-nsync
-  ./scripts/bootstrap-machine.sh
-  node ./scripts/render-preferences.mjs
+    git clone git@github.com:ai-creed/ai-pref-nsync.git ~/.ai-pref-nsync
+    cd ~/.ai-pref-nsync
+    ./scripts/bootstrap-machine.sh
+    node ./scripts/render-preferences.mjs
 features:
-  - "one canonical preference store versioned in git — no cloud"
-  - "shared profiles with per-machine local overrides"
-  - "managed sentinel block in CLAUDE.md / codex instructions — hand edits outside are preserved"
-  - "four rule types: hard, conditional, repeatable-actions, conflict-resolutions"
-  - "memorize script — agent appends new prefs mid-session and re-renders"
+    - "one canonical preference store versioned in git — no cloud"
+    - "shared profiles with per-machine local overrides"
+    - "managed sentinel block in CLAUDE.md / codex instructions — hand edits outside are preserved"
+    - "four rule types: hard, conditional, repeatable-actions, conflict-resolutions"
+    - "memorize script — agent appends new prefs mid-session and re-renders"
 ---
+
 import Features from "~/components/Features.astro";
 
 ## what it does

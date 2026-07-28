@@ -5,6 +5,7 @@ interface Props {
 const { status } = Astro.props;
 const label = status;
 ---
+
 <span class:list={["chip", status]}>[{label}]</span>
 
 <style>

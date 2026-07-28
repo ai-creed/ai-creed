@@ -5,15 +5,16 @@ status: "public"
 order: 2
 repo: "https://github.com/ai-creed/ai-cortex"
 install: |
-  npm i -g ai-cortex
+    npm i -g ai-cortex
 features:
-  - "rehydrate — every agent session starts warm: project structure, key files, pinned memories, in milliseconds"
-  - "suggest — find the right files for any task in three ranking modes, plus blast-radius callers before you refactor"
-  - "history — never lose a correction, decision, or referenced file when the harness compacts the conversation away"
-  - "remember — persistent memory of decisions, gotchas, how-tos; agents recall them, apply them, cite the why"
-  - "surface — relevant memories fire automatically before an edit; no more agents forgetting to ask"
-  - "agent-agnostic — 30+ mcp tools, cli, and library; local-first; zero writes into your repo"
+    - "rehydrate — every agent session starts warm: project structure, key files, pinned memories, in milliseconds"
+    - "suggest — find the right files for any task in three ranking modes, plus blast-radius callers before you refactor"
+    - "history — never lose a correction, decision, or referenced file when the harness compacts the conversation away"
+    - "remember — persistent memory of decisions, gotchas, how-tos; agents recall them, apply them, cite the why"
+    - "surface — relevant memories fire automatically before an edit; no more agents forgetting to ask"
+    - "agent-agnostic — 30+ mcp tools, cli, and library; local-first; zero writes into your repo"
 ---
+
 import Features from "~/components/Features.astro";
 
 > v0.15.1 — actively used. Available on npm.
@@ -43,17 +44,21 @@ agent → blast_radius   { qualifiedName: "parserForExt", file: "..." }
 
 ## memory
 
-The most valuable context is nowhere in the repo: *"we tried X, it broke under load, we use Y now"*, *"this module is owned by team Z"*, *"always use POST for create endpoints — agreed last quarter"*. Code shows the *what*; memory shows the *why* and the *what we tried that didn't work*. cortex captures it once, surfaces it forever.
+The most valuable context is nowhere in the repo: _"we tried X, it broke under load, we use Y now"_, _"this module is owned by team Z"_, _"always use POST for create endpoints — agreed last quarter"_. Code shows the _what_; memory shows the _why_ and the _what we tried that didn't work_. cortex captures it once, surfaces it forever.
 
 <div class="demo">
-  <img src="/ai-cortex/demo.gif" alt="ai-cortex demo: agent recalls a past decision and cites it" style="display: block; width: 100%; height: auto;" />
+	<img
+		src="/ai-cortex/demo.gif"
+		alt="ai-cortex demo: agent recalls a past decision and cites it"
+		style="display: block; width: 100%; height: auto;"
+	/>
 </div>
 
 Session 47 finds a rule from session 12, cites it, applies it. The agent didn't re-derive — it remembered.
 
 ## surface
 
-Recall depends on the agent *remembering to ask*. Surface doesn't. Before an edit lands, ai-cortex slips the file's relevant memories into the agent's working context — the rule shows up at the moment it matters, not after the mistake. Live in both Claude Code and Codex today, via each harness's pre-edit hook.
+Recall depends on the agent _remembering to ask_. Surface doesn't. Before an edit lands, ai-cortex slips the file's relevant memories into the agent's working context — the rule shows up at the moment it matters, not after the mistake. Live in both Claude Code and Codex today, via each harness's pre-edit hook.
 
 ## session history
 

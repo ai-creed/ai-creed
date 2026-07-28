@@ -13,6 +13,7 @@ const { title, description = "Local-first AI dev tooling.", wide = false } = Ast
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const ogImage = new URL("/og.png", Astro.site).toString();
 ---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -45,5 +46,7 @@ const ogImage = new URL("/og.png", Astro.site).toString();
 </html>
 
 <style>
-	.site-main { padding: var(--s-8) 0 var(--s-12); }
+	.site-main {
+		padding: var(--s-8) 0 var(--s-12);
+	}
 </style>

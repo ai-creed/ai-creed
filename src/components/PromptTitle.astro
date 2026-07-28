@@ -6,6 +6,7 @@ interface Props {
 const { text, level = 1 } = Astro.props;
 const Tag = `h${level}` as "h1" | "h2" | "h3";
 ---
+
 <Tag class="prompt">
 	<span class="prefix">$</span>
 	<span class="text">{text}</span>
@@ -17,6 +18,10 @@ const Tag = `h${level}` as "h1" | "h2" | "h3";
 		gap: var(--s-3);
 		align-items: baseline;
 	}
-	.prefix { color: var(--accent); }
-	.text { color: var(--fg); }
+	.prefix {
+		color: var(--accent);
+	}
+	.text {
+		color: var(--fg);
+	}
 </style>

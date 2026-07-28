@@ -5,15 +5,16 @@ status: "public"
 order: 4
 repo: "https://github.com/ai-creed/ai-ezio"
 install: |
-  npm i -g ai-ezio
+    npm i -g ai-ezio
 features:
-  - "fast, small terminal coding agent — hax's c engine kept headless"
-  - "explicit machine protocol over fds — no tui scraping for mounted automation"
-  - "generic mcp host — the model calls any configured stdio mcp server live, mid-turn"
-  - "first-class ai-whisper agent — mounts as implementer or reviewer in workflows"
-  - "context compaction and session recording built in"
-  - "one install, hax binary embedded — macos and linux via npm prebuilts"
+    - "fast, small terminal coding agent — hax's c engine kept headless"
+    - "explicit machine protocol over fds — no tui scraping for mounted automation"
+    - "generic mcp host — the model calls any configured stdio mcp server live, mid-turn"
+    - "first-class ai-whisper agent — mounts as implementer or reviewer in workflows"
+    - "context compaction and session recording built in"
+    - "one install, hax binary embedded — macos and linux via npm prebuilts"
 ---
+
 import Features from "~/components/Features.astro";
 
 > v0.2.0-beta.0 — early beta, on npm.
@@ -24,7 +25,7 @@ ai-ezio is a coding agent derived from [hax](https://github.com/OleksandrChekhov
 
 ## why
 
-The ai-* workflows need an agent they can mount, drive, and trust — one with explicit turn boundaries and handback text instead of fragile TUI parsing. ezio keeps hax's strengths as a terminal coding assistant while adding the workflow-native behavior mounted collaboration requires.
+The ai-\* workflows need an agent they can mount, drive, and trust — one with explicit turn boundaries and handback text instead of fragile TUI parsing. ezio keeps hax's strengths as a terminal coding assistant while adding the workflow-native behavior mounted collaboration requires.
 
 <Features list={frontmatter.features} />
 
