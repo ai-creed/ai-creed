@@ -1,0 +1,55 @@
+---
+import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
+
+type Kind = keyof typeof AI14ALL_DOWNLOADS.assets | "releasePage";
+
+interface Props {
+	kind: Kind;
+	variant: "button" | "list" | "inline";
+	label?: string;
+}
+const { kind, variant, label } = Astro.props;
+const href =
+	kind === "releasePage" ? AI14ALL_DOWNLOADS.releasePageUrl : AI14ALL_DOWNLOADS.assets[kind].url;
+const fallback =
+	kind === "releasePage" ? "all ai-14all releases" : `↓ ${AI14ALL_DOWNLOADS.assets[kind].label}`;
+---
+
+<a class:list={["dl", variant]} href={href} data-dl-origin="ai14all-downloads"
+	>{label ?? fallback}</a
+>
+
+<style>
+	.dl {
+		font-weight: 600;
+	}
+	.dl.button {
+		display: inline-block;
+		background: var(--accent);
+		border: 1px solid var(--accent);
+		border-radius: var(--radius);
+		padding: var(--s-3) var(--s-4); /* ≥44px */
+		font-size: var(--fs-sm);
+		color: var(--on-accent);
+		text-align: center;
+	}
+	.dl.button:hover {
+		background: var(--fg);
+		border-color: var(--fg);
+		color: var(--bg);
+	}
+	.dl.list {
+		border: none;
+		color: var(--accent);
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
+	}
+	.dl.list:hover {
+		color: var(--fg);
+	}
+	.dl.inline {
+		font-weight: 400; /* inherits the global link treatment */
+	}
+</style>
