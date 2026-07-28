@@ -46,6 +46,8 @@ The hierarchy is asymmetric in conversion, not importance.
   substantial product chapter.
 - ai-xavier and ai-samantha must never collapse into text-only cards, small
   badges, or minor add-ons around ai-14all.
+- the featured flagship set is exactly ai-14all, ai-xavier, and ai-samantha;
+  the homepage build fails on any other set (§7.1).
 
 ### 3.2 Narrative
 
@@ -80,6 +82,14 @@ Distribution status and marketing availability are separate concepts.
 `public`, `private`, `stable`, and `archived` remain repository/distribution
 metadata. The warmer public-facing availability labels describe what a
 visitor can do.
+
+Availability labels are consistent across every routed destination. Each
+flagship's project page renders the same public availability label as the
+homepage, from the same frontmatter source, so the labels cannot drift
+apart. `/projects/ai-samantha` currently introduces itself as coming soon;
+this redesign updates that page's status and copy to `early access`. Build
+validation fails when flagship page content contradicts its canonical label
+(§7.1).
 
 ### 3.4 Claims
 
@@ -201,7 +211,8 @@ Mobile actions:
 - primary: `get ai-14all`
 - secondary: `see the engineering loop`
 
-The desktop primary CTA opens the ai-14all latest release destination. The
+The desktop primary CTA opens the stable ai-14all release-page URL from the
+downloads module (§5.3) and never embeds a version. The
 mobile primary CTA routes to `/projects/ai-14all#download`; it must not imply
 that the desktop app installs on the phone.
 
@@ -232,8 +243,14 @@ Actions:
 - desktop: macOS download, Windows download, product details;
 - mobile: `view desktop downloads`, product details.
 
-Download destinations must use stable `latest` URLs or derive from one
-validated source. No manually pinned version appears in MDX or homepage copy.
+Download destinations resolve from exactly one source: a typed
+`src/data/ai14all-downloads.ts` module exporting the current `version`, the
+per-platform asset URLs, and the stable release-page URL ending in
+`releases/latest`. The hero and closing primary CTAs use the release-page
+URL; this chapter's macOS and Windows actions use the per-platform asset
+URLs; `/projects/ai-14all#download` renders from the same module. No
+download URL or version is hand-written in MDX or homepage source, and CI
+validates the module against the latest published release (§10).
 
 ### 5.4 Product chapter: ai-xavier
 
@@ -261,7 +278,7 @@ Initial CTA:
 Until a real waitlist exists, the primary CTA uses a prefilled contact email.
 A secondary `learn about ai-xavier` action routes to
 `/projects/ai-xavier`. It does not link to an install, App Store, or private
-TestFlight.
+TestFlight; this prohibition is build-enforced (§7.1).
 
 ### 5.5 Product chapter: ai-samantha
 
@@ -402,7 +419,8 @@ homepage:
     summary: see who is working, who is ready, and who needs you.
     desktopCta:
         label: download ai-14all
-        href: https://github.com/...
+        # href intentionally absent: ai-14all download destinations resolve
+        # from src/data/ai14all-downloads.ts at build time (§5.3)
     mobileCta:
         label: get ai-14all
         href: /projects/ai-14all#download
@@ -410,11 +428,25 @@ homepage:
 
 The schema and homepage build validation enforce:
 
-- unique flagship ranks across the collection;
-- allowed availability values;
-- desktop and mobile CTA labels and URLs;
+- the set of featured projects is exactly `ai-14all`, `ai-xavier`, and
+  `ai-samantha` — a build with a missing, extra, or renamed flagship fails;
+- flagship ranks are exactly ai-14all = 1, ai-xavier = 2, ai-samantha = 3;
+- each flagship id maps to its dedicated visual component through an
+  exhaustive typed map, so a flagship without its visual is a build error;
+- allowed availability values, plus cross-page consistency: each flagship's
+  project page renders the same availability label as the homepage from the
+  same source field, and flagship MDX contains no contradicting availability
+  phrase;
 - a featured project has the fields required by its homepage chapter;
-- a `shipping` featured product has a real download or install destination.
+- ai-14all's mobile CTA href is exactly `/projects/ai-14all#download`, and
+  the ai-14all project page contains the matching `download` anchor;
+- ai-14all download destinations resolve exclusively from
+  `src/data/ai14all-downloads.ts`; a download URL or version hand-written in
+  MDX or homepage source fails the build;
+- ai-xavier action links are limited to a prefilled `mailto:` and
+  `/projects/ai-xavier`; any `apps.apple.com`, `testflight.apple.com`, or
+  `itms-services:` destination fails the build;
+- ai-samantha's primary action is a prefilled `mailto:`.
 
 Product claims and detailed prose remain in each MDX file. Homepage-only
 positioning belongs in the nested homepage object.
@@ -437,7 +469,9 @@ The page is composed from focused Astro components:
 
 The three visuals are separate components because their product interfaces
 and geometry are intentionally different. `FlagshipChapter` owns shared
-layout, stage labels, actions, and responsive ordering.
+layout, stage labels, actions, and responsive ordering. The mapping from
+flagship id to visual component is an exhaustive typed map (§7.1); removing
+a flagship or featuring one without its visual fails the build.
 
 ### 7.3 No client application layer
 
@@ -477,7 +511,8 @@ fallback for project pages. The homepage description is:
   enters the accessibility tree and keyboard order.
 - Availability and attention states always contain text; color is never the
   only signal.
-- No exact version appears unless derived from validated structured data.
+- No exact version is hand-written outside the typed data modules; rendered
+  versions derive from `ai14all-downloads.ts` or `recently-shipped.ts`.
 
 ## 9. Accessibility and performance constraints
 
@@ -503,7 +538,8 @@ Performance:
 - posters optimized through Astro images;
 - all video `preload="none"`;
 - Lighthouse mobile performance target at least 95;
-- LCP target below 1.5 seconds on fast 4G;
+- LCP target below 1.5 seconds on fast 4G, enforced under the stricter
+  Lighthouse default mobile throttling (§10);
 - CLS below 0.02.
 
 ## 10. Validation
@@ -512,10 +548,32 @@ Automated:
 
 - `pnpm check`
 - `pnpm lint`
-- `pnpm build`
-- format check
+- `pnpm build` — includes the schema, flagship-set, CTA, and availability
+  invariants from §7.1
+- `pnpm format:check`
 - accessibility scan with zero serious or critical findings
-- Lighthouse mobile thresholds from section 9
+- `pnpm check:downloads` — committed script; fails when a downloads-module
+  asset URL does not resolve successfully, when the module `version` differs
+  from the latest published ai-14all release tag, or when a built download
+  link bypasses the module. Network-dependent by design; runs in CI before
+  every deploy and on demand locally.
+- `pnpm check:budget` — committed `scripts/check-homepage-budget.mjs`; parses
+  `dist/index.html`, collects every subresource fetched without user
+  interaction (stylesheets, the font subset, and images including video
+  posters), excludes `preload="none"` media payloads and the favicon,
+  gzip-compresses each with Node `zlib` defaults, and fails when the
+  document plus subresources exceed 102,400 bytes
+- `pnpm lighthouse` — `@lhci/cli` pinned as a devDependency with a committed
+  `lighthouserc.json`: `collect.staticDistDir: "dist"`,
+  `collect.numberOfRuns: 3`, median-run aggregation, and Lighthouse's
+  default mobile emulation and simulated throttling (150 ms RTT, 1.6 Mbps
+  down, 4× CPU slowdown — stricter than fast 4G, so the §9 LCP target is
+  implied); error-level assertions: performance category at least 0.95,
+  `largest-contentful-paint` at most 1500 ms, `cumulative-layout-shift` at
+  most 0.02
+
+The committed scripts and configs are the source of truth for these
+thresholds; CI runs the full automated list before deploy.
 
 Visual:
 
@@ -550,6 +608,12 @@ Included:
 - a minimal `/projects/ai-xavier` page with honest `coming soon` status,
   product explanation, and prefilled contact-interest action so the flagship
   never leads to a 404;
+- aligning `/projects/ai-samantha` status and copy to `early access` so the
+  routed destination matches the homepage;
+- the typed `src/data/ai14all-downloads.ts` module and the
+  `pnpm check:downloads` CI guard;
+- the committed performance guards: `scripts/check-homepage-budget.mjs` and
+  the `lighthouserc.json` Lighthouse configuration;
 - accessibility, metadata, and media-loading fixes touched by the redesign.
 
 Not included:
