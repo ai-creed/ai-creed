@@ -524,7 +524,9 @@ Accessibility:
 - `:focus-visible` ring: 2 px coral, 2 px offset;
 - all normal text at least 4.5:1 contrast;
 - large text at least 3:1;
-- tap targets at least 44 px;
+- interactive targets at least 44 × 44 px — links, buttons, and disclosure
+  controls alike; only links inside prose paragraphs are exempt (the WCAG
+  2.5.8 inline exception);
 - correct heading order;
 - meaningful alt text or intentionally empty alt for decorative visuals;
 - full `prefers-reduced-motion` behavior;
@@ -556,9 +558,11 @@ Automated:
   and `axe-core` pinned as devDependencies; serves `dist/`, audits `/`,
   `/projects/ai-14all/`, `/projects/ai-xavier/`, and
   `/projects/ai-samantha/` at 1440 px and 390 px viewports, and fails on any
-  axe violation with impact `serious` or `critical`. During the homepage
-  audit it also records network traffic to network-idle and fails if any
-  video or audio asset is requested before user interaction (§4.5).
+  axe violation with impact `serious` or `critical`. At the 390 px viewport
+  it also asserts, via bounding boxes, that every visible interactive
+  element outside a prose paragraph measures at least 44 × 44 px. During the
+  homepage audit it also records network traffic to network-idle and fails
+  if any video or audio asset is requested before user interaction (§4.5).
 - `pnpm check:media` — committed `scripts/check-media.mjs`; parses every
   built HTML page and fails when a `<video>` lacks `preload="none"`,
   `poster`, or `controls`, when any `<video>` or `<audio>` carries

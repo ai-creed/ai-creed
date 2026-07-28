@@ -17,9 +17,9 @@ Copied from the spec; every task's requirements implicitly include these.
 - Hover/focus transitions are 150 ms; exactly one breathing animation exists (inside `Ai14allVisual`); `prefers-reduced-motion` kills all animation and zeroes transitions. No parallax, carousels, scroll-jacking, or scroll-triggered entrances.
 - Zero client JavaScript. Navigation uses native anchors; the mobile menu is a native `<details>`; responsive CTA variants are separate links hidden with `display: none`. `check:budget` hard-fails on any `<script>` tag in the built homepage.
 - One shared CTA breakpoint everywhere: desktop CTA/nav variants render at ≥ 900 px, mobile variants at ≤ 899 px — the header and every section use the same `@media (max-width: 899px)` query, so no viewport width ever shows mixed modes.
-- Every non-inline interactive target is at least 44 px tall. Nav, footer, list, and action links get `min-height: 44px; display: inline-flex; align-items: center;`; only links inside prose `<p>` elements are exempt (WCAG 2.5.8 inline exception). `check:a11y` asserts this with bounding boxes at 390 px.
+- Every interactive target — links, buttons, and `<summary>` disclosures alike — is at least 44 × 44 px; only links inside prose `<p>` elements are exempt (spec §9's WCAG 2.5.8 inline exception). Nav, footer, list, and action links get `min-height: 44px; min-width: 44px; display: inline-flex; align-items: center;`. `check:a11y` asserts both dimensions across `a, button, summary, input, select, textarea, [role="button"]` with bounding boxes at 390 px.
 - No media autoplays. Every `<video>` has `preload="none"`, a `poster`, and `controls`, and never `autoplay`. The homepage embeds no `<video>` at all.
-- Homepage initial transfer ≤ 102,400 bytes (gzip, Node `zlib` defaults) counting the document plus every automatically fetched subresource including icons and the font; only `preload="none"` media payloads are excluded.
+- Homepage initial transfer ≤ 102,400 bytes (gzip, Node `zlib` defaults) counting the document plus every automatically fetched subresource including icons and the font; only `preload="none"` media payloads are excluded. External (cross-origin) automatically fetched resources are forbidden outright — `check:budget` rejects them rather than skipping them.
 - Lighthouse (LHCI, default mobile simulated throttling, median of 3 runs): performance `minScore` 0.95, LCP `maxNumericValue` 1499, CLS `maxNumericValue` 0.019.
 - Accessibility: skip link; labeled navigation; `:focus-visible` ring 2 px coral with 2 px offset; normal text ≥ 4.5:1 contrast, large text ≥ 3:1; tap targets ≥ 44 px; correct heading order; meaningful or intentionally empty alt text.
 - Claims (binding on all public copy): the three flagships are **source-available**, never "open source". ai-xavier may claim watching live terminals, answering prompts, steering, interrupting — NOT approvals or a kill switch — and links to no install/App Store/TestFlight. ai-samantha may claim fully local speech recognition/synthesis, never a fully local AI stack. Naming lore stays implicit. The autonomous-loop vision is paraphrased, future-tensed, never cited to private material.
@@ -78,10 +78,12 @@ Copied from the spec; every task's requirements implicitly include these.
 - [ ] **Step 1: Install the font package and copy the single weight**
 
 ```bash
-pnpm add -D @fontsource/fraunces
+pnpm add -D -E @fontsource/fraunces@5.3.0
 mkdir -p public/fonts
 cp node_modules/@fontsource/fraunces/files/fraunces-latin-600-normal.woff2 public/fonts/fraunces-latin-600.woff2
 ```
+
+Expected manifest entry: `"@fontsource/fraunces": "5.3.0"` (exact, no range prefix).
 
 - [ ] **Step 2: Replace the token block and baseline in `src/styles/global.css`**
 
@@ -164,7 +166,7 @@ Replace the entire `:root { … }` block (lines 1–38) with:
 	left: -9999px;
 	top: 0;
 	z-index: 100;
-	padding: var(--s-2) var(--s-3);
+	padding: var(--s-3) var(--s-4); /* 44px target when focused */
 	background: var(--bg-raised);
 	color: var(--fg);
 	border: 1px solid var(--accent);
@@ -234,6 +236,7 @@ In `src/components/Header.astro` (still rendered on project and bio pages), repl
 	border: none;
 	color: var(--fg-dim);
 	min-height: 44px;
+	min-width: 44px;
 	display: inline-flex;
 	align-items: center;
 }
@@ -374,9 +377,11 @@ Playwright's bundled Chromium cannot decode the H.264 demo videos, so posters ar
 - [ ] **Step 1: Install playwright and its chromium**
 
 ```bash
-pnpm add -D playwright
+pnpm add -D -E playwright@1.62.0
 pnpm exec playwright install chromium
 ```
+
+Expected manifest entry: `"playwright": "1.62.0"` (exact, no range prefix).
 
 (pnpm's `onlyBuiltDependencies` allowlist is untouched — playwright needs no postinstall script; browsers install via the CLI.)
 
@@ -788,6 +793,18 @@ homepage:
         href: "/projects/ai-14all#download"
 ```
 
+Also replace the entire `features` list — the current bullets are noun-led and implementation-heavy ("session-per-worktree isolation", "monaco-powered", "notional usage-cost telemetry"), which violates AGENTS.md's verb-led, value-flow rule — with:
+
+```yaml
+features:
+    - "run agents in parallel — each gets its own branch, worktree, and terminal, so they never collide"
+    - "see who needs you at a glance — the sidebar shows which agent is waiting and what task it was given"
+    - "review inline — highlight a line, leave a comment, the agent picks it up and fixes in place"
+    - "browse and verify without leaving — file view, diff review, and jump-to-symbol built in"
+    - "compose the ecosystem — ai-cortex remembers your codebase, ai-whisper runs autonomous workflows"
+    - "track what agents cost — estimated per-session token and spend telemetry"
+```
+
 In the body: delete the entire `## download` section (the "Latest stable release" line, the three
 asset bullets, the auto-update blockquote, and the repo/changelog/known-issues list). In its place
 put a version-free links list (the download UI returns in Task 15, rendered from the module):
@@ -1049,6 +1066,10 @@ import { AI14ALL_DOWNLOADS } from "~/data/ai14all-downloads";
 		color: var(--fg-dim);
 		padding: var(--s-3);
 		margin: calc(-1 * var(--s-3));
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
 	}
 	.nav-mobile[open] summary {
 		color: var(--accent);
@@ -1149,6 +1170,7 @@ import { SITE_GITHUB_URL, SITE_CONTACT_EMAIL } from "~/consts";
 		border: none;
 		color: var(--fg-dim);
 		min-height: 44px;
+		min-width: 44px;
 		display: inline-flex;
 		align-items: center;
 	}
@@ -2212,6 +2234,7 @@ import { RECENTLY_SHIPPED } from "~/data/recently-shipped";
 		color: var(--fg-dim);
 		border: none;
 		min-height: 44px;
+		min-width: 44px;
 		display: inline-flex;
 		align-items: center;
 	}
@@ -2399,6 +2422,7 @@ const supporting = (await getCollection("projects"))
 		border: none;
 		font-weight: 600;
 		min-height: 44px;
+		min-width: 44px;
 		display: inline-flex;
 		align-items: center;
 	}
@@ -2559,6 +2583,7 @@ And in the `<style>` block add (the `li a` rule keeps markdown list links — ch
 	border: none;
 	color: var(--accent);
 	min-height: 44px;
+	min-width: 44px;
 	display: inline-flex;
 	align-items: center;
 }
@@ -2569,6 +2594,7 @@ And in the `<style>` block add (the `li a` rule keeps markdown list links — ch
 }
 .body :global(li a) {
 	min-height: 44px;
+	min-width: 44px;
 	display: inline-flex;
 	align-items: center;
 }
@@ -2773,7 +2799,7 @@ Both scripts parse built HTML with regexes; that is acceptable because they only
 **Interfaces:**
 
 - Consumes: `dist/` from `pnpm build`.
-- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus a hard zero-JS gate: any `<script>` tag on the built homepage fails). CI (Task 21) runs both.
+- Produces: `pnpm check:media` (spec §10 markup guard: every `<video>` has `preload="none"`, `poster`, `controls`, never `autoplay`; same for `<audio>` minus poster) and `pnpm check:budget` (gzip byte budget, favicon-inclusive, largest-srcset-candidate rule, 102,400-byte ceiling, plus two hard gates: any `<script>` tag on the built homepage fails, and any external automatically fetched resource — image, stylesheet, preload, icon, or font — fails rather than being skipped). CI (Task 21) runs both.
 
 - [ ] **Step 1: Write `scripts/check-media.mjs`**
 
@@ -2821,7 +2847,8 @@ console.log(`check:media ok — ${pages.length} pages scanned`);
 // media payloads are excluded. gzip via Node zlib defaults. Ceiling: 102,400 bytes.
 // Zero-JS (spec §7.3): any <script> tag on the homepage fails the check outright;
 // script src / modulepreload resources are still counted so the budget stays an
-// upper bound even if that rule is ever relaxed.
+// upper bound even if that rule is ever relaxed. External (cross-origin) auto-
+// fetched resources cannot be measured from dist, so they are forbidden outright.
 import { readFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
@@ -2829,8 +2856,15 @@ const LIMIT = 102_400;
 const html = readFileSync("dist/index.html", "utf8");
 const urls = new Set();
 
+const external = [];
 const take = (u) => {
-	if (u && u.startsWith("/") && !u.startsWith("//")) urls.add(u.split(/[?#]/)[0]);
+	if (!u) return;
+	const clean = u.split(/[?#]/)[0];
+	if (/^(?:https?:)?\/\//i.test(u)) {
+		external.push(clean); // cross-origin auto-fetch is forbidden; reported below
+		return;
+	}
+	if (u.startsWith("/")) urls.add(clean);
 };
 
 for (const [, rel, href] of html.matchAll(/<link\b[^>]*rel="([^"]+)"[^>]*href="([^"]+)"[^>]*>/gi)) {
@@ -2875,7 +2909,7 @@ const cssFiles = [...urls].filter((u) => u.endsWith(".css"));
 for (const css of cssFiles) {
 	const p = `dist${css}`;
 	if (!existsSync(p)) continue;
-	for (const [, u] of readFileSync(p, "utf8").matchAll(/url\((["']?)(\/[^)"']+)\1\)/g)) take(u);
+	for (const [, , u] of readFileSync(p, "utf8").matchAll(/url\((["']?)([^)"']+)\1\)/g)) take(u);
 }
 
 let total = gzipSync(readFileSync("dist/index.html")).length;
@@ -2896,6 +2930,12 @@ for (const [u, size] of rows.sort((a, b) => b[1] - a[1])) {
 	console.log(`${String(size).padStart(8)}  ${u}`);
 }
 console.log(`${String(total).padStart(8)}  TOTAL (limit ${LIMIT})`);
+if (external.length) {
+	console.error(
+		`check:budget FAILED — external automatically fetched resources are forbidden: ${[...new Set(external)].join(", ")}`,
+	);
+	process.exit(1);
+}
 if (scriptTags.length) {
 	console.error(
 		`check:budget FAILED — zero-JS contract: ${scriptTags.length} <script> tag(s) on the homepage (first: ${scriptTags[0]})`,
@@ -2925,7 +2965,7 @@ Add to `package.json` scripts:
 Run: `pnpm build && pnpm check:media && pnpm check:budget`
 Expected: both pass. If `check:budget` exceeds the ceiling, the fix order is: confirm the font file is the single 600-weight subset, then trim hero CSS — never raise `LIMIT`.
 
-Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; run `pnpm build` again to clean it.
+Prove each guard bites: temporarily add `autoplay` to the video in `[...slug].astro`, rebuild, expect `check:media` to fail; revert. Temporarily `cp public/ai-14all/hero-demo-poster.jpg public/big.jpg` and add `<img src="/big.jpg" alt="" />` to `index.astro`, rebuild, confirm the budget total grows in the listing; revert both. Then `printf '<script>x</script>' >> dist/index.html && pnpm check:budget` must fail on the zero-JS gate; rebuild. Finally `printf '<img src="https://example.com/big.jpg" alt="" />' >> dist/index.html && pnpm check:budget` must fail on the external-resource gate; run `pnpm build` again to clean it.
 
 ```bash
 git add scripts/check-media.mjs scripts/check-homepage-budget.mjs package.json
@@ -2944,7 +2984,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 **Interfaces:**
 
 - Consumes: `src/data/ai14all-downloads.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL or version string in `src/` outside the two typed data modules.
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -3007,13 +3047,27 @@ if (!readFileSync(anchorPage, "utf8").includes('id="download"')) {
 	errors.push(`missing id="download" anchor in ${anchorPage}`);
 }
 
-// 5. Source provenance: the two typed data modules are the ONLY carriers of a
-// download URL or the current version string anywhere in src/ — a hand-written
-// copy that merely equals the module's URL still fails.
+// 5. Source provenance: the two typed data modules are the ONLY carriers of an
+// ai-14all download URL, release-page URL (including releases/latest), or exact
+// version anywhere in src/ — a hand-written copy that merely equals a module
+// value still fails, and so does a stale one. Components, lib, pages, and the
+// three flagship MDX files are additionally version-free: ANY exact semver
+// token there fails (other projects' pages may still state their own versions).
 const ALLOWED_SOURCES = new Set([
 	join("src", "data", "ai14all-downloads.ts"),
 	join("src", "data", "recently-shipped.ts"),
 ]);
+const FLAGSHIP_MDX = new Set([
+	join("src", "content", "projects", "ai-14all.mdx"),
+	join("src", "content", "projects", "ai-xavier.mdx"),
+	join("src", "content", "projects", "ai-samantha.mdx"),
+]);
+const VERSION_FREE = (file) =>
+	FLAGSHIP_MDX.has(file) ||
+	file.startsWith("src/components/") ||
+	file.startsWith("src/lib/") ||
+	file.startsWith("src/pages/");
+const SEMVER_RE = /\bv?\d+\.\d+\.\d+\b/;
 const TEXT_RE = /\.(astro|ts|mjs|md|mdx|json|css|svg|ya?ml)$/;
 const sources = [];
 (function walkSrc(dir) {
@@ -3029,8 +3083,14 @@ for (const file of sources) {
 	if (text.includes("/releases/download/")) {
 		errors.push(`hand-written download URL outside the data modules: ${file}`);
 	}
-	if (text.includes(v)) {
-		errors.push(`hand-written version "${v}" outside the data modules: ${file}`);
+	if (text.includes("github.com/ai-creed/ai-14all/releases")) {
+		errors.push(`hand-written ai-14all release URL outside the data modules: ${file}`);
+	}
+	if (/ai-14all[-\s]v?\d+\.\d+\.\d+/.test(text)) {
+		errors.push(`hand-written ai-14all version outside the data modules: ${file}`);
+	}
+	if (VERSION_FREE(file) && SEMVER_RE.test(text)) {
+		errors.push(`hand-written exact version in version-free source: ${file}`);
 	}
 }
 
@@ -3052,7 +3112,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites twice: change the module `VERSION` to `"1.8.1"`, rerun, expect the stale-version failure; revert. Then add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` inside a comment in `ai-14all.mdx`, rerun, expect the source-provenance failure; revert.
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites four ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught, not only the current one).
 
 ```bash
 git add scripts/check-downloads.mjs package.json
@@ -3069,18 +3129,21 @@ git commit -m "test(guards): download single-source, liveness, and staleness che
 **Interfaces:**
 
 - Consumes: `dist/`, `playwright` (Task 3), `axe-core`.
-- Produces: `pnpm check:a11y` — serves `dist/` on an ephemeral port, audits `/`, `/projects/ai-14all/`, `/projects/ai-xavier/`, `/projects/ai-samantha/` at 1440×900 and 390×844, fails on any axe violation with impact `serious`/`critical`, fails if the homepage requests any video/audio asset before user interaction, and — because axe's serious/critical gate does not reliably cover target size — asserts with bounding boxes at 390 px that every visible link outside a prose `<p>` is at least 44 px tall.
+- Produces: `pnpm check:a11y` — serves `dist/` on an ephemeral port, audits `/`, `/projects/ai-14all/`, `/projects/ai-xavier/`, `/projects/ai-samantha/` at 1440×900 and 390×844, fails on any axe violation with impact `serious`/`critical`, fails if the homepage requests any video/audio asset before user interaction, and — because axe's serious/critical gate does not reliably cover target size — asserts with bounding boxes at 390 px that every visible interactive element (`a, button, summary, input, select, textarea, [role=button]`) outside a prose `<p>` measures at least 44 × 44 px (spec §9).
 
 - [ ] **Step 1: Install axe-core**
 
 ```bash
-pnpm add -D axe-core
+pnpm add -D -E axe-core@4.12.1
 ```
+
+Expected manifest entry: `"axe-core": "4.12.1"` (exact, no range prefix).
 
 - [ ] **Step 2: Write `scripts/check-a11y.mjs`**
 
 ```js
-// Accessibility + pre-interaction media guard (spec §9/§10). Run after `pnpm build`.
+// Accessibility, 44×44 interactive-target, and pre-interaction media guard
+// (spec §9/§10). Run after `pnpm build`.
 import { createServer } from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, extname } from "node:path";
@@ -3155,20 +3218,22 @@ for (const viewport of VIEWPORTS) {
 		if (viewport.width === 390) {
 			const undersized = await page.evaluate(() => {
 				const bad = [];
-				for (const a of document.querySelectorAll("a")) {
-					if (a.closest("p")) continue; // inline prose links exempt (WCAG 2.5.8)
-					const box = a.getBoundingClientRect();
+				const targets = document.querySelectorAll(
+					"a, button, summary, input, select, textarea, [role=button]",
+				);
+				for (const el of targets) {
+					if (el.closest("p")) continue; // prose inline exception (spec §9)
+					const box = el.getBoundingClientRect();
 					if (box.width === 0 || box.height === 0) continue; // hidden responsive variant
-					if (box.height < 44) {
-						bad.push(
-							`${a.textContent.trim().slice(0, 40)} (${Math.round(box.height)}px)`,
-						);
+					if (box.height < 44 || box.width < 44) {
+						const label = (el.textContent || el.tagName).trim().slice(0, 40);
+						bad.push(`${label} (${Math.round(box.width)}×${Math.round(box.height)}px)`);
 					}
 				}
 				return bad;
 			});
 			for (const target of undersized) {
-				errors.push(`${route} @390px: tap target under 44px — ${target}`);
+				errors.push(`${route} @390px: interactive target under 44×44px — ${target}`);
 			}
 		}
 	}
@@ -3182,7 +3247,7 @@ if (errors.length) {
 	process.exit(1);
 }
 console.log(
-	`check:a11y ok — ${ROUTES.length} routes × ${VIEWPORTS.length} viewports, no serious/critical violations, 44px targets hold, no pre-interaction media`,
+	`check:a11y ok — ${ROUTES.length} routes × ${VIEWPORTS.length} viewports, no serious/critical violations, 44×44 targets hold, no pre-interaction media`,
 );
 ```
 
@@ -3219,8 +3284,10 @@ git commit -m "test(guards): axe accessibility scan with pre-interaction media a
 - [ ] **Step 1: Install and write the committed config**
 
 ```bash
-pnpm add -D @lhci/cli
+pnpm add -D -E @lhci/cli@0.15.1
 ```
+
+Expected manifest entry: `"@lhci/cli": "0.15.1"` (exact, no range prefix).
 
 `lighthouserc.json`:
 
