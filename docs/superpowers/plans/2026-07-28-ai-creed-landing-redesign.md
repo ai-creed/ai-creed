@@ -3092,8 +3092,8 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 
 **Interfaces:**
 
-- Consumes: `src/data/ai14all-downloads.ts` and `src/data/recently-shipped.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `typescript` (the already-pinned devDependency, for the constant-folding pass), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so adjacent-literal splits like `"/releases/" + "latest"` collapse and fail; a TypeScript constant-folding pass (via the pinned `typescript` devDependency) evaluates const string pieces assembled with `+` or template literals across code files, `.astro` frontmatter, and template expressions — frontmatter constants seed the template fold — so separate-variable and frontmatter-to-template constructions fail too; `recently-shipped.ts` is exempt only from the release-page and version rules — an asset download URL there fails like anywhere else; and every BUILT ai-14all release-page link must equal a module-derived destination, whatever expression produced it. Folding additionally evaluates `[…].join(sep)` over foldable elements. And the decisive layer: release-link rendering is centralized in the module-owned `Ai14allReleaseLink` component (Task 2; `RecentlyShipped` stamps its own module's links), so every BUILT release-pattern anchor must BOTH equal a module-derived destination AND carry the `data-dl-origin` marker — an attribute token that is itself banned (normalized) outside the two owner components. Ordinary build-time construction is closed end to end: literal, adjacent-split, separate-variable, joined, frontmatter-to-template, and imported-pieces assemblies all fail — the last at the rendered-origin layer, because a hand-assembled link renders markerless.
+- Consumes: `src/data/ai14all-downloads.ts` and `src/data/recently-shipped.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `typescript` (the repo's existing devDependency, lockfile-resolved to 5.9.3, for the constant-folding pass), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so adjacent-literal splits like `"/releases/" + "latest"` collapse and fail; a TypeScript constant-folding pass (via the repo's existing `typescript` devDependency, lockfile-resolved 5.9.3) evaluates const string pieces assembled with `+` or template literals across code files, `.astro` frontmatter, and template expressions — frontmatter constants seed the template fold — so separate-variable and frontmatter-to-template constructions fail too; `recently-shipped.ts` is exempt only from the release-page and version rules — an asset download URL there fails like anywhere else; and every BUILT ai-14all release-page link must equal a module-derived destination, whatever expression produced it. Folding additionally evaluates `[…].join(sep)` over foldable elements. And the decisive layer: release-link rendering is centralized in the module-owned `Ai14allReleaseLink` component (Task 2; `RecentlyShipped` stamps its own module's links), so every BUILT release-pattern anchor must BOTH equal a module-derived destination AND carry the `data-dl-origin` marker — an attribute token that is itself banned (normalized) outside the two owner components. Ordinary build-time construction is closed end to end: literal, adjacent-split, separate-variable, joined, frontmatter-to-template, and imported-pieces assemblies all fail — the last at the rendered-origin layer, because a hand-assembled link renders markerless.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -3149,14 +3149,15 @@ const allowedPages = new Set([
 	AI14ALL_DOWNLOADS.releasePageUrl,
 	...RECENTLY_SHIPPED.map((e) => e.href).filter((h) => h.startsWith(RELEASES_PREFIX)),
 ]);
-const ORIGIN_RE = /data-dl-origin="(?:ai14all-downloads|recently-shipped)"/;
+const ASSET_ORIGIN_RE = /data-dl-origin="ai14all-downloads"/;
+const PAGE_ORIGIN_RE = /data-dl-origin="(?:ai14all-downloads|recently-shipped)"/;
 for (const page of pages) {
 	const html = readFileSync(page, "utf8");
 	// Origin, not just equality: every rendered release-pattern anchor must BOTH
 	// match a module-derived destination AND carry the module-owned origin
-	// marker stamped by Ai14allReleaseLink / RecentlyShipped. A hand-assembled
-	// link renders markerless and fails, however its href was constructed —
-	// including from imported pieces the source scan cannot fold.
+	// marker. ASSET links must carry the ai14all-downloads marker specifically —
+	// the recently-shipped marker is valid only for release-PAGE links — so a
+	// download URL smuggled through the shipped module still fails at render.
 	for (const [tag] of html.matchAll(/<a\b[^>]*>/g)) {
 		const hrefMatch = tag.match(/href="([^"]*)"/);
 		if (!hrefMatch) continue;
@@ -3167,10 +3168,15 @@ for (const page of pages) {
 		if (isDownload && !allowed.has(href)) {
 			errors.push(`download link bypasses module in ${page}: ${href}`);
 		}
+		if (isDownload && !ASSET_ORIGIN_RE.test(tag)) {
+			errors.push(
+				`asset link rendered without the downloads-module origin marker in ${page}: ${href}`,
+			);
+		}
 		if (isReleasePage && !allowedPages.has(href)) {
 			errors.push(`release-page link not derived from the data modules in ${page}: ${href}`);
 		}
-		if (!ORIGIN_RE.test(tag)) {
+		if (isReleasePage && !PAGE_ORIGIN_RE.test(tag)) {
 			errors.push(
 				`release link rendered without a module-owned origin marker in ${page}: ${href}`,
 			);
@@ -3188,8 +3194,8 @@ if (!readFileSync(anchorPage, "utf8").includes('id="download"')) {
 // 5. Source provenance — the import allowlist, enforced in three layers:
 //    (a) normalized-substring scan: quotes/backticks/plus/commas/brackets/
 //        whitespace stripped, so adjacent-literal splits collapse and fail;
-//    (b) constant folding (TypeScript AST, via the pinned `typescript`
-//        devDependency): const string pieces assembled with `+` or template
+//    (b) constant folding (TypeScript AST, via the repo's existing
+//        `typescript` devDependency): const string pieces assembled with `+` or template
 //        literals fold to their static values and are re-tested — in code
 //        files, .astro frontmatter, AND template expressions, with frontmatter
 //        constants seeding the template fold — so separate-variable and
@@ -3204,7 +3210,9 @@ if (!readFileSync(anchorPage, "utf8").includes('id="download"')) {
 //        two owner components, so it cannot be forged by ordinary construction.
 // ai14all-downloads.ts is fully exempt (it is the carrier); recently-shipped.ts
 // is exempt only from release-PAGE and version rules — an asset download URL
-// there fails like anywhere else.
+// there fails like anywhere else, INCLUDING when assembled from pieces: the
+// download-pattern check runs on its folded constants before its exemption,
+// and rendered asset links additionally require the ai14all-downloads marker.
 const DOWNLOADS_MODULE = join("src", "data", "ai14all-downloads.ts");
 const SHIPPED_MODULE = join("src", "data", "recently-shipped.ts");
 // The ONLY files allowed to emit the rendered-origin marker attribute:
@@ -3338,24 +3346,30 @@ const sources = [];
 		else if (TEXT_RE.test(p)) sources.push(p);
 	}
 })("src");
+const DOWNLOAD_RE = /\/releases\/download\//;
 for (const file of sources) {
 	if (file === DOWNLOADS_MODULE) continue; // the ONLY carrier of asset URLs
 	const text = readFileSync(file, "utf8");
 	const squashed = text.replace(/["'`+,[\]\s]/g, "");
-	if (squashed.includes("/releases/download/")) {
-		errors.push(`hand-written download URL outside the downloads module: ${file}`);
+	const folded = foldedValuesOf(file, text);
+	// Asset-URL exclusivity binds EVERY file — recently-shipped.ts included.
+	// Both the normalized text AND every constant-folded value are tested for
+	// the download pattern BEFORE the shipped-module exemption, so an asset URL
+	// assembled from pieces inside recently-shipped.ts still fails.
+	if (DOWNLOAD_RE.test(squashed) || folded.some((v) => DOWNLOAD_RE.test(v))) {
+		errors.push(`hand-written or assembled download URL outside the downloads module: ${file}`);
 	}
 	if (squashed.includes("data-dl-origin") && !MARKER_ALLOWED.has(file)) {
 		errors.push(`provenance marker outside its owner components: ${file}`);
 	}
-	if (file === SHIPPED_MODULE) continue; // may carry release-page hrefs + version summaries
+	if (file === SHIPPED_MODULE) continue; // may carry release-PAGE hrefs + version summaries
 	if (squashed.includes("github.com/ai-creed/ai-14all/releases")) {
 		errors.push(`hand-written ai-14all release URL outside the data modules: ${file}`);
 	}
 	if (/\/releases\/(latest|tag\/)/.test(squashed)) {
 		errors.push(`hand-written release path outside the data modules: ${file}`);
 	}
-	for (const value of foldedValuesOf(file, text)) {
+	for (const value of folded) {
 		if (FORBIDDEN_FOLDED.some((re) => re.test(value))) {
 			errors.push(`constant-folded release destination outside the data modules: ${file}`);
 			break;
@@ -3387,7 +3401,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites eleven ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it); (8) the separate-variable fixture — add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = root + rel + tip;` to `LandingHeader.astro`'s frontmatter → `constant-folded release destination` failure, even though no contiguous or adjacent-literal form exists anywhere in the file (only `pnpm check:downloads` needs to run for this bite; revert immediately); (9) the frontmatter-to-template fixture — in `LandingHeader.astro`, add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest";` to the frontmatter and `<a href={root + rel + tip}>x</a>` to the template → `constant-folded release destination` failure, because the rendered expression folds with the frontmatter's constants; (10) the join fixture — in `LandingHeader.astro`'s frontmatter add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = [root, rel, tip].join("");` → `constant-folded release destination` failure (`join` over foldable elements folds); (11) the imported-pieces fixture — create `src/lib/evil-pieces.ts` exporting the same `root`/`rel`/`tip` constants, import them in `LandingHeader.astro`, and render `<a href={root + rel + tip}>x</a>` in the template, then run `pnpm build && pnpm check:downloads` → `release link rendered without a module-owned origin marker` failure (cross-file pieces evade folding by design; the rendered-origin layer catches whatever they assemble); delete the helper file and revert.
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites twelve ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it); (8) the separate-variable fixture — add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = root + rel + tip;` to `LandingHeader.astro`'s frontmatter → `constant-folded release destination` failure, even though no contiguous or adjacent-literal form exists anywhere in the file (only `pnpm check:downloads` needs to run for this bite; revert immediately); (9) the frontmatter-to-template fixture — in `LandingHeader.astro`, add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest";` to the frontmatter and `<a href={root + rel + tip}>x</a>` to the template → `constant-folded release destination` failure, because the rendered expression folds with the frontmatter's constants; (10) the join fixture — in `LandingHeader.astro`'s frontmatter add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = [root, rel, tip].join("");` → `constant-folded release destination` failure (`join` over foldable elements folds); (11) the imported-pieces fixture — create `src/lib/evil-pieces.ts` exporting the same `root`/`rel`/`tip` constants, import them in `LandingHeader.astro`, and render `<a href={root + rel + tip}>x</a>` in the template, then run `pnpm build && pnpm check:downloads` → `release link rendered without a module-owned origin marker` failure (cross-file pieces evade folding by design; the rendered-origin layer catches whatever they assemble); delete the helper file and revert; (12) the shipped-module asset fixture — in `src/data/recently-shipped.ts` add `const gh = "https://github.com/ai-creed"; const repo = "/ai-14all"; const dl = "/releases/download"; const tag = "/v1.8.2"; const file = "/ai-14all-1.8.2-universal.dmg"; export const EVIL = [gh, repo, dl, tag, file].join("");` → `hand-written or assembled download URL outside the downloads module` failure, proving the download-pattern folding runs BEFORE the shipped-module exemption (no single piece contains the pattern; the folded value does).
 
 ```bash
 git add scripts/check-downloads.mjs package.json
