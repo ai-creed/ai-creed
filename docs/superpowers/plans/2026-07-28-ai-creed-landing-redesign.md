@@ -3023,7 +3023,7 @@ git commit -m "test(guards): media click-to-play and homepage byte-budget checks
 **Interfaces:**
 
 - Consumes: `src/data/ai14all-downloads.ts` and `src/data/recently-shipped.ts` (imported with `--experimental-strip-types`, Node ≥ 22.6), `typescript` (the already-pinned devDependency, for the constant-folding pass), `dist/`, network (GitHub API + asset HEADs; `GITHUB_TOKEN` used when present).
-- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so adjacent-literal splits like `"/releases/" + "latest"` collapse and fail; a TypeScript constant-folding pass (via the pinned `typescript` devDependency) evaluates const string pieces assembled with `+` or template literals, so separate-variable constructions fail too; `recently-shipped.ts` is exempt only from the release-page and version rules — an asset download URL there fails like anywhere else; and every BUILT ai-14all release-page link must equal a module-derived destination, whatever expression produced it. These three layers form the import allowlist; the sole residual (cross-file smuggling of individually innocent pieces) can, by the rendered allowlist, only reproduce an allowed current destination — a wrong or stale one cannot render.
+- Produces: `pnpm check:downloads` — fails on unresolvable asset URLs, on module `version` ≠ latest published release tag, on any built ai-14all download link that bypasses the module, on a missing `id="download"` anchor, on any install-destination pattern (`apps.apple.com`, `testflight.apple.com`, `itms-services:`) anywhere in `dist`, and — provenance, not just equality — on any hand-written download URL, any ai-14all release-page URL (including `releases/latest`), any bare `/releases/latest` or `/releases/tag/` path fragment (so URLs constructed from pieces are caught), any `ai-14all <semver>` pairing anywhere in `src/`, and any exact semver token at all in components, lib, pages, or flagship MDX, outside the two typed data modules. Stale versions fail, not only the current one; the source scan covers `.astro/.ts/.tsx/.js/.jsx/.mjs/.cjs/.md/.mdx/.html/.json/.css/.svg/.yaml`; URL rules run on NORMALIZED source text (quotes, backticks, `+`, commas, brackets, and whitespace stripped), so adjacent-literal splits like `"/releases/" + "latest"` collapse and fail; a TypeScript constant-folding pass (via the pinned `typescript` devDependency) evaluates const string pieces assembled with `+` or template literals across code files, `.astro` frontmatter, and template expressions — frontmatter constants seed the template fold — so separate-variable and frontmatter-to-template constructions fail too; `recently-shipped.ts` is exempt only from the release-page and version rules — an asset download URL there fails like anywhere else; and every BUILT ai-14all release-page link must equal a module-derived destination, whatever expression produced it. These three layers form the import allowlist; the sole residual (cross-file smuggling of individually innocent pieces) can, by the rendered allowlist, only reproduce an allowed current destination — a wrong or stale one cannot render.
 
 - [ ] **Step 1: Write `scripts/check-downloads.mjs`**
 
@@ -3107,8 +3107,10 @@ if (!readFileSync(anchorPage, "utf8").includes('id="download"')) {
 //        whitespace stripped, so adjacent-literal splits collapse and fail;
 //    (b) constant folding (TypeScript AST, via the pinned `typescript`
 //        devDependency): const string pieces assembled with `+` or template
-//        literals fold to their static values and are re-tested, so
-//        separate-variable construction fails too;
+//        literals fold to their static values and are re-tested — in code
+//        files, .astro frontmatter, AND template expressions, with frontmatter
+//        constants seeding the template fold — so separate-variable and
+//        frontmatter-to-template construction fail too;
 //    (c) the rendered-output allowlist above: whatever expression survives
 //        must still RENDER a module-derived destination.
 // Residual: cross-file smuggling of individually innocent pieces can, by (c),
@@ -3139,10 +3141,11 @@ const FORBIDDEN_FOLDED = [
 
 // Fold statically-known string constants: literals, parenthesized forms,
 // const-identifier references, `+` concatenation, and template literals whose
-// spans are all known. Returns every folded string value in the file.
-function foldConstants(code, file) {
-	const sf = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true);
-	const consts = new Map();
+// spans are all known. `seed` lets template expressions inherit the constants
+// declared in an .astro frontmatter. Parsed as TSX so JSX-ish chunks fold too.
+function foldWithConsts(code, file, seed = new Map()) {
+	const sf = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+	const consts = new Map(seed);
 	const valueOf = (node) => {
 		if (ts.isStringLiteralLike(node)) return node.text;
 		if (ts.isIdentifier(node)) return consts.get(node.text);
@@ -3174,16 +3177,55 @@ function foldConstants(code, file) {
 		ts.forEachChild(node, visit);
 	};
 	visit(sf);
-	return folded;
+	return { folded, consts };
 }
 
-// .astro frontmatter is TypeScript — extract and fold it. (mdx frontmatter is
-// YAML, which cannot assemble strings; template-expression assembly from
-// frontmatter pieces is the documented cross-context residual covered by (c).)
-const frontmatterOf = (text) => {
-	const m = text.match(/^---\n([\s\S]*?)\n---/);
-	return m ? m[1] : null;
-};
+// Every balanced top-level {…} chunk in a template — attribute expressions,
+// children, even <style> rule bodies (those fold to nothing and are harmless).
+function templateExpressions(template) {
+	const out = [];
+	for (let i = 0; i < template.length; i++) {
+		if (template[i] !== "{") continue;
+		let depth = 1;
+		let j = i + 1;
+		while (j < template.length && depth > 0) {
+			if (template[j] === "{") depth++;
+			else if (template[j] === "}") depth--;
+			j++;
+		}
+		if (depth === 0) {
+			out.push(template.slice(i + 1, j - 1));
+			i = j - 1;
+		}
+	}
+	return out;
+}
+
+// Fold a file end to end. Code files fold directly. For .astro, the TS
+// frontmatter folds first and its constants SEED every template expression —
+// so pieces declared in frontmatter and assembled in the rendered expression
+// still fold to the full destination. For .mdx, ESM import/export lines seed
+// the body's expressions (YAML frontmatter cannot assemble strings).
+function foldedValuesOf(file, text) {
+	if (CODE_RE.test(file)) return foldWithConsts(text, file).folded;
+	if (!file.endsWith(".astro") && !file.endsWith(".mdx")) return [];
+	const fmMatch = text.match(/^---\n([\s\S]*?)\n---\n?/);
+	const template = fmMatch ? text.slice(fmMatch[0].length) : text;
+	const seedSource = file.endsWith(".astro")
+		? fmMatch
+			? fmMatch[1]
+			: ""
+		: template
+				.split("\n")
+				.filter((line) => /^(import|export)\s/.test(line))
+				.join("\n");
+	const { folded, consts } = foldWithConsts(seedSource, file);
+	const all = [...folded];
+	for (const expr of templateExpressions(template)) {
+		all.push(...foldWithConsts(`(${expr});`, file, consts).folded);
+	}
+	return all;
+}
 
 const sources = [];
 (function walkSrc(dir) {
@@ -3207,15 +3249,10 @@ for (const file of sources) {
 	if (/\/releases\/(latest|tag\/)/.test(squashed)) {
 		errors.push(`hand-written release path outside the data modules: ${file}`);
 	}
-	const code = CODE_RE.test(file) ? text : file.endsWith(".astro") ? frontmatterOf(text) : null;
-	if (code) {
-		for (const value of foldConstants(code, file)) {
-			if (FORBIDDEN_FOLDED.some((re) => re.test(value))) {
-				errors.push(
-					`constant-folded release destination outside the data modules: ${file}`,
-				);
-				break;
-			}
+	for (const value of foldedValuesOf(file, text)) {
+		if (FORBIDDEN_FOLDED.some((re) => re.test(value))) {
+			errors.push(`constant-folded release destination outside the data modules: ${file}`);
+			break;
 		}
 	}
 	if (/ai-14all[-\s]v?\d+\.\d+\.\d+/.test(text)) {
@@ -3244,7 +3281,7 @@ Add to `package.json` scripts:
 ```
 
 Run: `pnpm build && pnpm check:downloads`
-Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites eight ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it); (8) the separate-variable fixture — add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = root + rel + tip;` to `LandingHeader.astro`'s frontmatter → `constant-folded release destination` failure, even though no contiguous or adjacent-literal form exists anywhere in the file (only `pnpm check:downloads` needs to run for this bite; revert immediately).
+Expected: `check:downloads ok — v1.8.2 live, …`. Prove it bites nine ways, reverting after each: (1) change the module `VERSION` to `"1.8.1"` → stale-version failure; (2) add `https://github.com/ai-creed/ai-14all/releases/download/v0.0.0/x.dmg` in a comment in `ai-14all.mdx` → download-URL provenance failure; (3) add `https://github.com/ai-creed/ai-14all/releases/latest` in a comment in `LandingFooter.astro` → release-URL provenance failure; (4) add the prose `works since v1.8.1` to `ai-14all.mdx` → version-free semver failure (a stale version, proving arbitrary versions are caught); (5) add the bare string `/releases/latest` in a comment in `EngineRoom.astro` → release-path-fragment failure (a constructed URL cannot hide the fragment); (6) after a build, `printf '<a href="https://github.com/ai-creed/ai-14all/releases/tag/v0.0.1">x</a>' >> dist/index.html && pnpm check:downloads` → rendered release-page link failure; rebuild to clean; (7) the split-construction fixture — add `const u = "https://github.com/ai-creed/ai-14all" + "/releases/" + "latest";` to `LandingHeader.astro`'s frontmatter → normalized-text failure (the pieces collapse back into the forbidden URL even though no single literal contains it); (8) the separate-variable fixture — add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest"; const href = root + rel + tip;` to `LandingHeader.astro`'s frontmatter → `constant-folded release destination` failure, even though no contiguous or adjacent-literal form exists anywhere in the file (only `pnpm check:downloads` needs to run for this bite; revert immediately); (9) the frontmatter-to-template fixture — in `LandingHeader.astro`, add `const root = "https://github.com/ai-creed/ai-14all"; const rel = "/releases/"; const tip = "latest";` to the frontmatter and `<a href={root + rel + tip}>x</a>` to the template → `constant-folded release destination` failure, because the rendered expression folds with the frontmatter's constants.
 
 ```bash
 git add scripts/check-downloads.mjs package.json
