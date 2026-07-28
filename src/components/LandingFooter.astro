@@ -1,0 +1,76 @@
+---
+import { SITE_GITHUB_URL, SITE_CONTACT_EMAIL } from "~/consts";
+---
+
+<footer class="lf">
+	<div class="container cols">
+		<nav class="col" aria-label="flagships">
+			<h2 class="col-h">the system</h2>
+			<a href="/projects/ai-14all">ai-14all — control</a>
+			<a href="/projects/ai-xavier">ai-xavier — presence</a>
+			<a href="/projects/ai-samantha">ai-samantha — supervision</a>
+		</nav>
+		<nav class="col" aria-label="engine room">
+			<h2 class="col-h">engine room</h2>
+			<a href="/projects/ai-whisper">ai-whisper</a>
+			<a href="/projects/ai-cortex">ai-cortex</a>
+			<a href="/projects/ai-ezio">ai-ezio</a>
+			<a href="/projects/ai-pref-nsync">ai-pref-nsync</a>
+		</nav>
+		<nav class="col" aria-label="elsewhere">
+			<h2 class="col-h">elsewhere</h2>
+			<a href={SITE_GITHUB_URL}>github — community</a>
+			<a href="/bio">bio</a>
+			<a href={`mailto:${SITE_CONTACT_EMAIL}`}>{SITE_CONTACT_EMAIL}</a>
+		</nav>
+	</div>
+	<div class="container legal">
+		<p class="subtitle">
+			ai-creed · built by Vu Phan and his friends · source-available · 2026
+		</p>
+	</div>
+</footer>
+
+<style>
+	.lf {
+		border-top: 1px solid var(--border);
+		padding: var(--s-8) 0 var(--s-6);
+		font-size: var(--fs-sm);
+	}
+	.cols {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--s-6);
+	}
+	.col {
+		display: flex;
+		flex-direction: column;
+	}
+	.col-h {
+		font-size: var(--fs-xs);
+		font-weight: 600;
+		color: var(--fg-muted);
+		letter-spacing: 0.06em;
+		margin-bottom: var(--s-2);
+	}
+	.col a {
+		border: none;
+		color: var(--fg-dim);
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
+	}
+	.col a:hover {
+		color: var(--accent);
+	}
+	.legal {
+		margin-top: var(--s-8);
+		font-size: var(--fs-xs);
+	}
+	@media (max-width: 639px) {
+		.cols {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

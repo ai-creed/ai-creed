@@ -1,0 +1,127 @@
+---
+import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
+---
+
+<header class="lh">
+	<div class="container row">
+		<a class="brand" href="/"><span class="dot">●</span><span>ai-creed</span></a>
+		<nav class="nav-desktop" aria-label="primary">
+			<a href="#system">the system</a>
+			<a href="#products">products</a>
+			<a href="#north-star">north star</a>
+			<a href="#creed">creed</a>
+			<Ai14allReleaseLink kind="releasePage" variant="button" label="download ai-14all" />
+		</nav>
+		<details class="nav-mobile">
+			<summary>menu</summary>
+			<nav aria-label="primary">
+				<a href="#system">the system</a>
+				<a href="#products">products</a>
+				<a href="#north-star">north star</a>
+				<a href="#creed">creed</a>
+				<a class="cta" href="/projects/ai-14all#download">get ai-14all</a>
+			</nav>
+		</details>
+	</div>
+</header>
+
+<style>
+	.lh {
+		border-bottom: 1px solid var(--border);
+		padding: var(--s-3) 0;
+		font-size: var(--fs-sm);
+		position: relative;
+	}
+	.row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--s-4);
+	}
+	.brand {
+		display: inline-flex;
+		gap: var(--s-2);
+		align-items: center;
+		border: none;
+		color: var(--fg);
+		padding: var(--s-3) 0; /* 44px target */
+	}
+	.brand:hover {
+		color: var(--accent);
+	}
+	.dot {
+		color: var(--accent);
+	}
+	.nav-desktop {
+		display: inline-flex;
+		gap: var(--s-4);
+		align-items: center;
+	}
+	.nav-desktop a {
+		border: none;
+		color: var(--fg-dim);
+		padding: var(--s-3) var(--s-1); /* 44px target */
+	}
+	.nav-desktop a:hover {
+		color: var(--accent);
+	}
+	a.cta {
+		background: var(--accent);
+		color: var(--on-accent);
+		border-radius: var(--radius);
+		padding: var(--s-3) var(--s-4); /* 44px target */
+		font-weight: 600;
+	}
+	a.cta:hover {
+		background: var(--fg);
+		color: var(--bg);
+	}
+	.nav-mobile {
+		display: none;
+	}
+	.nav-mobile summary {
+		cursor: pointer;
+		list-style: none;
+		color: var(--fg-dim);
+		padding: var(--s-3);
+		margin: calc(-1 * var(--s-3));
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
+	}
+	.nav-mobile[open] summary {
+		color: var(--accent);
+	}
+	.nav-mobile nav {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 100%;
+		z-index: 10;
+		display: flex;
+		flex-direction: column;
+		background: var(--bg-raised);
+		border-bottom: 1px solid var(--border);
+		padding: var(--s-2) var(--s-4) var(--s-4);
+	}
+	.nav-mobile nav a {
+		border: none;
+		color: var(--fg);
+		padding: var(--s-3) 0; /* 44px rows */
+	}
+	.nav-mobile nav a.cta {
+		margin-top: var(--s-2);
+		text-align: center;
+		padding: var(--s-3);
+	}
+	/* the shared 899px CTA breakpoint — must match hero, chapters, and closing */
+	@media (max-width: 899px) {
+		.nav-desktop {
+			display: none;
+		}
+		.nav-mobile {
+			display: block;
+		}
+	}
+</style>
