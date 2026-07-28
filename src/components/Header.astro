@@ -32,6 +32,7 @@
 		align-items: center;
 		border: none;
 		color: var(--fg);
+		min-height: 44px;
 	}
 	.brand:hover { color: var(--accent); }
 	.dot { color: var(--accent); }
@@ -41,7 +42,14 @@
 		align-items: center;
 		color: var(--fg-dim);
 	}
-	.links a { border: none; color: var(--fg-dim); }
+	.links a {
+		border: none;
+		color: var(--fg-dim);
+		min-height: 44px;
+		min-width: 44px;
+		display: inline-flex;
+		align-items: center;
+	}
 	.links a:hover { color: var(--accent); }
 	.sep { opacity: 0.5; }
 </style>

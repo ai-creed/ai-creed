@@ -16,8 +16,20 @@ const label = status;
 		border: 1px solid var(--border);
 		line-height: 1.2;
 	}
-	.chip.public { color: var(--accent); border-color: var(--accent); }
-	.chip.private { color: var(--warn); border-color: var(--warn); }
-	.chip.stable { color: var(--accent); border-color: var(--accent); }
-	.chip.archived { color: var(--fg-dim); border-color: var(--border); }
+	.chip.public {
+		color: var(--status-done);
+		border-color: var(--status-done);
+	}
+	.chip.private {
+		color: var(--status-waiting);
+		border-color: var(--status-waiting);
+	}
+	.chip.stable {
+		color: var(--status-done);
+		border-color: var(--status-done);
+	}
+	.chip.archived {
+		color: var(--status-idle);
+		border-color: var(--border);
+	}
 </style>
