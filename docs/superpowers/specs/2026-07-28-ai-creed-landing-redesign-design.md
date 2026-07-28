@@ -172,7 +172,8 @@ moments show one understandable interaction, not a full-screen recording with
 illegible interface text.
 
 Media is click-to-play behind a poster with `preload="none"`. The initial
-page never autoloads product video.
+page never autoloads product video; §10's markup and network guards enforce
+this.
 
 ## 5. Homepage architecture
 
@@ -551,26 +552,41 @@ Automated:
 - `pnpm build` — includes the schema, flagship-set, CTA, and availability
   invariants from §7.1
 - `pnpm format:check`
-- accessibility scan with zero serious or critical findings
+- `pnpm check:a11y` — committed `scripts/check-a11y.mjs`, with `playwright`
+  and `axe-core` pinned as devDependencies; serves `dist/`, audits `/`,
+  `/projects/ai-14all/`, `/projects/ai-xavier/`, and
+  `/projects/ai-samantha/` at 1440 px and 390 px viewports, and fails on any
+  axe violation with impact `serious` or `critical`. During the homepage
+  audit it also records network traffic to network-idle and fails if any
+  video or audio asset is requested before user interaction (§4.5).
+- `pnpm check:media` — committed `scripts/check-media.mjs`; parses every
+  built HTML page and fails when a `<video>` lacks `preload="none"`,
+  `poster`, or `controls`, when any `<video>` or `<audio>` carries
+  `autoplay`, or when an `<audio>` lacks `preload="none"`
 - `pnpm check:downloads` — committed script; fails when a downloads-module
   asset URL does not resolve successfully, when the module `version` differs
   from the latest published ai-14all release tag, or when a built download
   link bypasses the module. Network-dependent by design; runs in CI before
   every deploy and on demand locally.
 - `pnpm check:budget` — committed `scripts/check-homepage-budget.mjs`; parses
-  `dist/index.html`, collects every subresource fetched without user
-  interaction (stylesheets, the font subset, and images including video
-  posters), excludes `preload="none"` media payloads and the favicon,
-  gzip-compresses each with Node `zlib` defaults, and fails when the
-  document plus subresources exceed 102,400 bytes
+  `dist/index.html` and sums the document plus every automatically fetched
+  subresource: stylesheets, the font subset, `rel="preload"` targets, icon
+  links plus any `/favicon.ico` fallback present in `dist`, and images
+  including video posters. For `srcset`/`<source>` responsive images it
+  counts the largest-byte candidate, so the measurement upper-bounds real
+  transfer on every device. Only click-to-play media payloads behind
+  `preload="none"` are excluded. Each asset is gzip-compressed with Node
+  `zlib` defaults; the check fails when the total exceeds 102,400 bytes.
 - `pnpm lighthouse` — `@lhci/cli` pinned as a devDependency with a committed
   `lighthouserc.json`: `collect.staticDistDir: "dist"`,
   `collect.numberOfRuns: 3`, median-run aggregation, and Lighthouse's
   default mobile emulation and simulated throttling (150 ms RTT, 1.6 Mbps
   down, 4× CPU slowdown — stricter than fast 4G, so the §9 LCP target is
-  implied); error-level assertions: performance category at least 0.95,
-  `largest-contentful-paint` at most 1500 ms, `cumulative-layout-shift` at
-  most 0.02
+  implied); error-level assertions: performance category `minScore` 0.95,
+  `largest-contentful-paint` `maxNumericValue` 1499, and
+  `cumulative-layout-shift` `maxNumericValue` 0.019 — LHCI comparisons are
+  inclusive, so these values enforce §9's strict below-1500 ms and
+  below-0.02 contract
 
 The committed scripts and configs are the source of truth for these
 thresholds; CI runs the full automated list before deploy.
@@ -583,7 +599,9 @@ Visual:
 - keyboard-only walkthrough;
 - reduced-motion screenshot comparison;
 - no horizontal overflow;
-- posters render before any media request.
+- posters render visibly before playback; absence of pre-interaction media
+  requests is enforced by `pnpm check:media` and the `check:a11y` network
+  assertion, not by screenshots.
 
 Product comprehension:
 
@@ -614,6 +632,8 @@ Included:
   `pnpm check:downloads` CI guard;
 - the committed performance guards: `scripts/check-homepage-budget.mjs` and
   the `lighthouserc.json` Lighthouse configuration;
+- the committed accessibility and media guards: `scripts/check-a11y.mjs`
+  (Playwright plus axe-core) and `scripts/check-media.mjs`;
 - accessibility, metadata, and media-loading fixes touched by the redesign.
 
 Not included:
