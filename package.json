@@ -12,7 +12,8 @@
 		"check": "astro check",
 		"format": "prettier -w .",
 		"format:check": "prettier -c .",
-		"lint": "eslint src"
+		"lint": "eslint src",
+		"og": "node scripts/generate-og.mjs"
 	},
 	"dependencies": {
 		"@astrojs/mdx": "^5.0.3",

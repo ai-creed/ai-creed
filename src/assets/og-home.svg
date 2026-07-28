@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+	<rect width="1200" height="630" fill="#0d0d0d" />
+	<circle cx="120" cy="120" r="10" fill="#ff8163" />
+	<text x="150" y="132" font-family="Menlo, monospace" font-size="34" fill="#e6e6e6">ai-creed</text>
+	<text x="118" y="300" font-family="Georgia, serif" font-size="72" font-weight="600" fill="#e6e6e6">your coding agents.</text>
+	<text x="118" y="390" font-family="Georgia, serif" font-size="72" font-weight="600" fill="#ff8163">under your command.</text>
+	<text x="120" y="500" font-family="Menlo, monospace" font-size="30" fill="#8a8a8a">ai-14all · ai-xavier · ai-samantha</text>
+	<text x="120" y="560" font-family="Menlo, monospace" font-size="24" fill="#7d7d7d">ai-creed.dev</text>
+</svg>
