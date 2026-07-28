@@ -17,3 +17,6 @@ node_modules/
 
 # brainstorm session artifacts (visual-companion)
 .superpowers/
+
+# local lighthouse CI reports
+.lighthouseci/
