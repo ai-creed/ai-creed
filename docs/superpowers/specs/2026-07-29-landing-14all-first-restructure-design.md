@@ -6,8 +6,10 @@
   resolved on recorded operator direction, and every §11 criterion has an
   autonomous evidence path.
 - **Amends:** `docs/superpowers/specs/2026-07-28-ai-creed-landing-redesign-design.md`
-  (page structure, hero, and two guard thresholds; everything else in that
-  spec — tokens, guard suite, project pages, zero-JS contract — stands)
+  (page structure, hero, two guard thresholds, and the §10
+  human-participant validation items — superseded per §11 below;
+  everything else in that spec — tokens, guard suite, project pages,
+  zero-JS contract, and §10's automated/visual checks — stands)
 - **Approved mockup:** `2026-07-29-landing-14all-first-restructure-mockup.html`
   (same directory; canonical copy at
   `~/.ai-pref-nsync/local-docs/ai-creed/brainstorm/2026-07-29-landing-restructure-mockup-a.html`).
@@ -195,11 +197,13 @@ copy above is binding as the **values to write into**
 `ai-xavier.mdx` / `ai-samantha.mdx` frontmatter. Homepage duo CTAs route
 to project pages; prefilled `mailto:` interest links live **only** on the
 project pages (which already carry them). `src/lib/flagships.ts` is
-amended to enforce the chosen model: for non-14all flagships, both CTA
-hrefs must equal `/projects/<id>` exactly (replacing today's
-must-be-mailto rule, so no contradictory frontmatter can survive the
-build), labels non-empty, and the xavier no-install-destination patterns
-stay. No `content.config.ts` schema change is needed — the existing
+amended to enforce the chosen model: for non-14all flagships,
+`desktopCta` and `mobileCta` must be **identical in both label and
+href** (deep equality, so a stale or divergent mobile label cannot
+survive the build), both hrefs must equal `/projects/<id>` exactly
+(replacing today's must-be-mailto rule, so no contradictory frontmatter
+can survive either), labels non-empty, and the xavier
+no-install-destination patterns stay. No `content.config.ts` schema change is needed — the existing
 `cta` shape already fits. The recorded mobile-CTAs-route decision's
 intent is preserved: a project-page route never implies a
 phone-installable desktop app.
@@ -254,9 +258,13 @@ section, and LandingFooter render exactly as today, in today's order.
 Legacy anchor preservation (inbound links must not break): `id="system"`
 stays on the hero section; an in-flow, visually-empty anchor with
 `id="products"` sits at the top of the LoopExtends section. Anchor
-integrity is machine-enforced, not a plan step: the new `check:copy`
-guard (§8) fails the build if any in-page `href="#…"` in
-`dist/index.html` lacks a matching `id`.
+integrity is machine-enforced, not a plan step, by the new `check:copy`
+guard (§8) in two parts: (a) generic — any in-page `href="#…"` in
+`dist/index.html` without a matching `id` fails; (b) explicit — the ids
+`system` and `products` must each exist in `dist/index.html`, asserted
+by name. Clause (b) is required because the revised nav no longer links
+to those fragments; they protect **external** inbound links, which the
+generic href→id check cannot see.
 
 ## 7. File impact
 
@@ -301,12 +309,20 @@ guard (§8) fails the build if any in-page `href="#…"` in
   both binding.
 - **`check:copy` (new guard).** `scripts/check-homepage-copy.mjs`, wired
   as `pnpm check:copy` and into the deploy gate
-  (`.github/workflows/deploy.yml`) beside the other guards. Static
-  assertions against `dist/index.html`: the §11.2 download-CTA counts,
-  the §11.3 verbatim-copy list, and the §11.4 anchor-integrity check.
-- **`check:a11y` (extended).** Adds one homepage assertion at 1440×900:
-  exactly 2 coral download CTAs visible in the viewport at scroll 0
-  (§11.2). All existing checks unchanged, must stay green.
+  (`.github/workflows/deploy.yml`) beside the other guards. DOM-level
+  assertions against the built homepage — parse `dist/index.html` into a
+  real DOM (headless chromium over the same static-server pattern as
+  `check-a11y.mjs`, or an equivalent HTML parser), never regex substring
+  matching: the §11.2 markup-layer download-CTA counts, the §11.3
+  selector-scoped verbatim-copy table, and the §11.4 anchor checks
+  (generic href→id plus explicit legacy-id existence).
+- **`check:a11y` (extended).** Adds homepage visibility assertions
+  (§11.2): at 1440×900, exactly 2 coral download CTAs visible in the
+  viewport at scroll 0; and at each of 1440×900 and 390×844, exactly 3
+  download CTAs visible over the **complete page** — an element counts
+  only when actually rendered visible, so the hidden half of each
+  responsive desktop/mobile pair must not count and a pair leaking both
+  variants fails. All existing checks unchanged, must stay green.
 - **`check:media`, `check:downloads`:** unchanged, must stay green.
 
 ## 9. Accessibility
@@ -331,25 +347,48 @@ closing CTA section and footer; dependency upgrades.
 Every criterion has an autonomous evidence path; none blocks on a human.
 Operator judgment is welcome post-ship but does not gate this workflow.
 
+Inherited-validation supersession: the 2026-07-28 spec's §10
+human-participant items — the "at least 7 of 10 agentic-coding
+developers" five-second comprehension test and the ≥70% scenario-routing
+study — are **superseded for this amendment and its workflow** by
+criterion 5 below (reviewer-judged screenshot evidence). They were
+obligations of the previous, operator-gated effort; no human-participant
+study is an acceptance obligation of this autonomous workflow. The
+inherited §10 automated checks, visual checks, the
+two-actions-to-download rule, and the claims-traceability rule are
+untouched and remain in force.
+
 1. All six guards green: `check:media`, `check:budget` (amended ceiling),
    `check:downloads`, `check:a11y` (extended, §8), `check:copy` (new,
    §8), `lighthouse` (amended LCP, ratcheted).
-2. Download-CTA counts, machine-asserted. `check:copy` requires, in
-   `dist/index.html`, exactly 3 links with
+2. Download-CTA counts, machine-asserted at two layers. Markup layer
+   (`check:copy`): exactly 3 links with
    `data-dl-origin="ai14all-downloads"` and exactly 3 primary-styled
-   links with `href="/projects/ai-14all#download"` — the dual
-   desktop/mobile pattern for header, hero, and closing CTA, and nothing
-   else coral-download on the page. `check:a11y` additionally asserts
-   exactly 2 coral download CTAs visible in the 1440×900 viewport at
-   scroll 0.
-3. Verbatim copy, machine-asserted. `check:copy` carries the binding §4
-   strings (hero eyebrow, h1, sub, fine line, caption; the three step
-   bodies; the three feature cards; section titles; duo pitches, bodies,
-   chips, and CTA labels) and fails unless each appears in
-   `dist/index.html` exactly as written.
-4. Anchor integrity, machine-asserted. `check:copy` fails if any in-page
-   `href="#…"` in `dist/index.html` lacks a matching `id` — this covers
-   the §6 nav targets and the legacy `#system`/`#products` anchors.
+   links with `href="/projects/ai-14all#download"` in `dist/index.html`
+   — the dual desktop/mobile pattern for header, hero, and closing CTA,
+   and nothing else coral-download on the page. Rendered layer
+   (`check:a11y`, which owns visibility): exactly 2 coral download CTAs
+   visible in the 1440×900 viewport at scroll 0, and exactly 3 download
+   CTAs visible over the complete page at each of 1440×900 and 390×844 —
+   so a responsive pair leaking both variants (four visible full-page
+   CTAs) fails even while every markup count passes.
+3. Verbatim copy, machine-asserted at the rendered semantic layer.
+   `check:copy` carries the binding §4 strings (hero eyebrow, h1, sub,
+   fine line, caption; the three step bodies; the three feature cards;
+   section titles; duo pitches, bodies, chips, and CTA labels) as a
+   **selector → expected-text table**: each string is asserted as
+   whitespace-normalized `textContent` equality on the specific semantic
+   element that must carry it (e.g. `#system h1`; the step-02 `<p>`
+   normalized across its status spans; the samantha card's ghost CTA
+   link), each with an expected occurrence count (1 unless the table
+   states otherwise). Substring presence anywhere in the file is not
+   sufficient — hidden, duplicated, or wrong-section text fails.
+4. Anchor integrity, machine-asserted. `check:copy` fails if (a) any
+   in-page `href="#…"` in `dist/index.html` lacks a matching `id` — the
+   §6 nav targets — or (b) either legacy id, `system` or `products`, is
+   absent from `dist/index.html`, asserted by name. Clause (b) exists
+   because the revised nav no longer references those fragments, so the
+   generic check alone would not catch their removal.
 5. Comprehension, evidence-reviewed. The implementation commits
    full-page screenshots of the built homepage at 1440×900 and 390×844
    to `docs/superpowers/evidence/2026-07-29-landing-restructure/`; the
