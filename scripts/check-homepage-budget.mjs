@@ -2,7 +2,8 @@
 // fetched subresource — stylesheets, preload targets, icons (plus /favicon.ico if
 // present), images and video posters; srcset counts its LARGEST candidate so the
 // measurement upper-bounds real transfer on every device. Only preload="none"
-// media payloads are excluded. gzip via Node zlib defaults. Ceiling: 102,400 bytes.
+// media payloads are excluded. gzip via Node zlib defaults. Ceiling: 262,144 bytes
+// (256 KiB — raised 2026-07-29 for the real hero-tour poster, spec §8).
 // Zero-JS (spec §7.3): any <script> tag on the homepage fails the check outright;
 // script src / modulepreload resources are still counted so the budget stays an
 // upper bound even if that rule is ever relaxed. External (cross-origin) auto-
@@ -13,7 +14,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
-const LIMIT = 102_400;
+const LIMIT = 262_144;
 const html = readFileSync("dist/index.html", "utf8");
 const urls = new Set();
 

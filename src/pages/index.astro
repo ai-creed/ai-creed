@@ -2,34 +2,19 @@
 import Base from "~/layouts/Base.astro";
 import LandingHeader from "~/components/LandingHeader.astro";
 import LandingFooter from "~/components/LandingFooter.astro";
-import EcosystemHero from "~/components/EcosystemHero.astro";
-import FlagshipChapter from "~/components/FlagshipChapter.astro";
-import Ai14allVisual from "~/components/Ai14allVisual.astro";
-import XavierVisual from "~/components/XavierVisual.astro";
-import SamanthaVisual from "~/components/SamanthaVisual.astro";
+import Hero14all from "~/components/Hero14all.astro";
+import HowItWorks from "~/components/HowItWorks.astro";
+import HomeFeatures from "~/components/HomeFeatures.astro";
+import LoopExtends from "~/components/LoopExtends.astro";
 import AutonomousLoop from "~/components/AutonomousLoop.astro";
 import RecentlyShipped from "~/components/RecentlyShipped.astro";
 import Creed from "~/components/Creed.astro";
 import EngineRoom from "~/components/EngineRoom.astro";
 import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
-import { getFlagships, type FlagshipId } from "~/lib/flagships";
+import { getFlagships } from "~/lib/flagships";
 
-const flagships = await getFlagships();
-
-const VISUALS: Record<FlagshipId, typeof Ai14allVisual> = {
-	"ai-14all": Ai14allVisual,
-	"ai-xavier": XavierVisual,
-	"ai-samantha": SamanthaVisual,
-};
-
-const CHAPTER_COPY: Record<FlagshipId, string> = {
-	"ai-14all":
-		"every agent runs in a real worktree with a real terminal. the sidebar shows who is quiet, who is ready, and who needs you — and inline review means you comment on a diff and the agent fixes it in place.",
-	"ai-xavier":
-		"execution and authority stay on your desktop. your phone is presence: watch live terminals, answer the prompt that is blocking an agent, steer, or interrupt.",
-	"ai-samantha":
-		"she watches the same sessions you do and answers out loud. speech recognition and voice synthesis run fully on your machine; the intelligence uses your configured model providers.",
-};
+// getFlagships() returns exactly the three flagships sorted by rank.
+const [ai14all, xavier, samantha] = await getFlagships();
 ---
 
 <Base
@@ -39,19 +24,11 @@ const CHAPTER_COPY: Record<FlagshipId, string> = {
 	wide
 >
 	<LandingHeader slot="header" />
-	<EcosystemHero flagships={flagships} />
 
-	{
-		flagships.map((f, i) => {
-			const Visual = VISUALS[f.id as FlagshipId];
-			return (
-				<FlagshipChapter flagship={f} id={i === 0 ? "products" : undefined}>
-					<p>{CHAPTER_COPY[f.id as FlagshipId]}</p>
-					<Visual slot="visual" />
-				</FlagshipChapter>
-			);
-		})
-	}
+	<Hero14all flagship={ai14all} />
+	<HowItWorks />
+	<HomeFeatures />
+	<LoopExtends xavier={xavier} samantha={samantha} />
 
 	<AutonomousLoop />
 	<RecentlyShipped />
