@@ -64,6 +64,9 @@ jobs:
             - name: Accessibility guard
               run: pnpm run check:a11y
 
+            - name: Copy guard
+              run: pnpm run check:copy
+
             - name: Lighthouse
               run: pnpm run lighthouse
 
