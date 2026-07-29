@@ -680,7 +680,7 @@ git commit -m "feat(home): Hero14all and HowItWorks sections"
 **Interfaces:**
 
 - Consumes: `Flagship` type; Task 1 frontmatter values (chip from `availability`, pitch from `headline`, body from `summary`, ghost CTA from `desktopCta`).
-- Produces: `HomeFeatures` with no props rendering `section#features` (classes `.label .feats .feat`); `LoopExtends` with `Props { xavier: Flagship; samantha: Flagship }` rendering `section#ecosystem` whose **first element child** is the legacy `span#products` anchor, with cards `.room.xavier` / `.room.samantha` (classes `.head .chip .pitch .body .act`) and named visual slots `xavier-visual` / `samantha-visual` (empty in the interim state per spec §2.5 — filling them later must need no restructuring).
+- Produces: `HomeFeatures` with no props rendering `section#features` (classes `.label .feats .feat`; card headings are `<h3>` per spec §9); `LoopExtends` with `Props { xavier: Flagship; samantha: Flagship }` rendering `section#ecosystem` whose **first element child** is the legacy `span#products` anchor, with cards `.room.xavier` / `.room.samantha` (classes `.head .chip .pitch .body .act`) and named visual slots `xavier-visual` / `samantha-visual` (empty in the interim state per spec §2.5 — filling them later must need no restructuring).
 
 - [ ] **Step 1: Write `src/components/HomeFeatures.astro`**
 
@@ -691,15 +691,15 @@ Copy is spec §4.3 verbatim. The `id="features"` exists for guard scoping only �
 	<p class="label">and while they work</p>
 	<div class="feats">
 		<div class="feat">
-			<strong>browse and verify without leaving</strong>
+			<h3>browse and verify without leaving</h3>
 			<span>file view, diff review, and jump-to-symbol built in.</span>
 		</div>
 		<div class="feat">
-			<strong>compose the ecosystem</strong>
+			<h3>compose the ecosystem</h3>
 			<span>ai-cortex remembers your codebase, ai-whisper runs autonomous workflows.</span>
 		</div>
 		<div class="feat">
-			<strong>track what agents cost</strong>
+			<h3>track what agents cost</h3>
 			<span>estimated per-session token and spend telemetry.</span>
 		</div>
 	</div>
@@ -729,8 +729,8 @@ Copy is spec §4.3 verbatim. The `id="features"` exists for guard scoping only �
 		padding: var(--s-4);
 		background: var(--bg-raised);
 	}
-	.feat strong {
-		display: block;
+	.feat h3 {
+		font-size: var(--fs-base);
 	}
 	.feat span {
 		display: block;
@@ -1172,6 +1172,9 @@ const COPY = [
 	},
 	{ sel: "#how .label", text: "how it works", visible: "both" },
 	{ sel: "#how h2", text: "three moves, one window.", visible: "both" },
+	{ sel: "#how .step:nth-child(1) .num", text: "01", visible: "both" },
+	{ sel: "#how .step:nth-child(2) .num", text: "02", visible: "both" },
+	{ sel: "#how .step:nth-child(3) .num", text: "03", visible: "both" },
 	{ sel: "#how .step:nth-child(1) h3", text: "fan out", visible: "both" },
 	{
 		sel: "#how .step:nth-child(1) p:not(.num)",
@@ -1192,7 +1195,7 @@ const COPY = [
 	},
 	{ sel: "#features .label", text: "and while they work", visible: "both" },
 	{
-		sel: "#features .feat:nth-child(1) strong",
+		sel: "#features .feat:nth-child(1) h3",
 		text: "browse and verify without leaving",
 		visible: "both",
 	},
@@ -1201,13 +1204,13 @@ const COPY = [
 		text: "file view, diff review, and jump-to-symbol built in.",
 		visible: "both",
 	},
-	{ sel: "#features .feat:nth-child(2) strong", text: "compose the ecosystem", visible: "both" },
+	{ sel: "#features .feat:nth-child(2) h3", text: "compose the ecosystem", visible: "both" },
 	{
 		sel: "#features .feat:nth-child(2) span",
 		text: "ai-cortex remembers your codebase, ai-whisper runs autonomous workflows.",
 		visible: "both",
 	},
-	{ sel: "#features .feat:nth-child(3) strong", text: "track what agents cost", visible: "both" },
+	{ sel: "#features .feat:nth-child(3) h3", text: "track what agents cost", visible: "both" },
 	{
 		sel: "#features .feat:nth-child(3) span",
 		text: "estimated per-session token and spend telemetry.",
@@ -1307,6 +1310,20 @@ for (const viewport of VIEWPORTS) {
 				desktop: document.querySelectorAll('a[data-dl-origin="ai14all-downloads"]').length,
 				mobile: document.querySelectorAll('a[href="/projects/ai-14all#download"]').length,
 			};
+			// spec §11.2 "nothing else coral-download on the page": every anchor
+			// painted with the accent fill must be one of the two approved forms —
+			// computed style, so a novel class cannot slip a seventh coral CTA in.
+			const coralLinks = [...document.querySelectorAll("a")].filter(
+				(el) => getComputedStyle(el).backgroundColor === "rgb(255, 129, 99)",
+			);
+			const coralStray = coralLinks
+				.filter(
+					(el) =>
+						el.getAttribute("data-dl-origin") !== "ai14all-downloads" &&
+						el.getAttribute("href") !== "/projects/ai-14all#download",
+				)
+				.map((el) => el.getAttribute("href") ?? "(no href)");
+			const coralTotal = coralLinks.length;
 			const anchors = [];
 			for (const a of document.querySelectorAll('a[href^="#"]')) {
 				const id = a.getAttribute("href").slice(1);
@@ -1320,6 +1337,8 @@ for (const viewport of VIEWPORTS) {
 				nav,
 				regions,
 				totals,
+				coralStray,
+				coralTotal,
 				anchors,
 				videoAria: video ? video.getAttribute("aria-label") : null,
 				heroIsSection: !!hero && hero.tagName === "SECTION" && !!hero.querySelector("h1"),
@@ -1380,6 +1399,14 @@ for (const viewport of VIEWPORTS) {
 			`@${viewport.key}: expected 3 mobile route links total, got ${found.totals.mobile}`,
 		);
 	}
+	if (found.coralTotal !== 6) {
+		errors.push(
+			`@${viewport.key}: expected exactly 6 coral-filled links (3 desktop + 3 mobile), got ${found.coralTotal}`,
+		);
+	}
+	for (const href of found.coralStray) {
+		errors.push(`@${viewport.key}: coral-filled link with unapproved destination: ${href}`);
+	}
 	for (const bad of found.anchors) {
 		errors.push(`@${viewport.key}: in-page link ${bad} has no matching id`);
 	}
@@ -1404,7 +1431,7 @@ if (errors.length) {
 	process.exit(1);
 }
 console.log(
-	`check:copy ok — ${COPY.length} copy entries × 2 viewports; nav, CTA regions, anchors, aria-label verified`,
+	`check:copy ok — ${COPY.length} copy entries × 2 viewports; nav, CTA regions, coral exclusivity, anchors, aria-label verified`,
 );
 ```
 
@@ -1426,7 +1453,7 @@ In `.github/workflows/deploy.yml`, add after the `Accessibility guard` step (chr
 - [ ] **Step 3: Run the guard — verify it passes**
 
 Run: `pnpm check:copy`
-Expected: `check:copy ok — 35 copy entries × 2 viewports; nav, CTA regions, anchors, aria-label verified`
+Expected: `check:copy ok — 38 copy entries × 2 viewports; nav, CTA regions, coral exclusivity, anchors, aria-label verified`
 
 - [ ] **Step 4: Mutation-test the guard (red), then restore (green)**
 
@@ -1459,15 +1486,26 @@ git commit -m "test(guards): check:copy — rendered copy, CTA distribution, nav
 **Interfaces:**
 
 - Consumes: Task 6's built page; the existing guard harnesses.
-- Produces: `check:media` fails any dist `<video>` without `playsinline` (spec §5); `check:a11y` enforces spec §11.2's rendered layer — exactly 2 download CTAs in the 1440×900 first viewport and exactly 3 visible over the complete page at both viewports.
+- Produces: `check:media` fails any dist `<video>` without a real `playsinline` attribute (spec §5, attribute-name tokenization); `check:a11y` enforces spec §11.2's rendered layer — exactly 2 download CTAs in the 1440×900 first viewport, exactly 3 visible over the complete page at both viewports, and zero visible coral-filled links outside the two approved forms.
 
 - [ ] **Step 1: Add the `playsinline` assertion to `scripts/check-media.mjs`**
 
-After the existing poster check inside the tag loop, add:
+After the existing poster check inside the tag loop, add an
+attribute-token check. A plain word-boundary regex would also accept
+`data-playsinline="false"` or the word inside an attribute VALUE, so the
+tag is tokenized into attribute NAMES first (values blanked out):
 
 ```js
-if (/<video/i.test(tag) && !/\bplaysinline\b/i.test(tag))
-	errors.push(`playsinline required — ${where}`);
+if (/<video/i.test(tag)) {
+	const attrNames = tag
+		.replace(/"[^"]*"/g, '""') // blank out attribute values
+		.replace(/^<\w+/, "")
+		.replace(/\/?>$/, "")
+		.split(/\s+/)
+		.map((a) => a.split("=")[0].toLowerCase())
+		.filter(Boolean);
+	if (!attrNames.includes("playsinline")) errors.push(`playsinline required — ${where}`);
+}
 ```
 
 - [ ] **Step 2: Add the download-CTA visibility block to `scripts/check-a11y.mjs`**
@@ -1489,8 +1527,18 @@ if (route === "/") {
 				'a[data-dl-origin="ai14all-downloads"], a[href="/projects/ai-14all#download"]',
 			),
 		].filter(isVisible);
+		// coral exclusivity (spec §11.2): no VISIBLE accent-filled anchor may
+		// exist outside the two approved forms — computed style, not classes.
+		const strayCoral = [...document.querySelectorAll("a")].filter(
+			(el) =>
+				getComputedStyle(el).backgroundColor === "rgb(255, 129, 99)" &&
+				isVisible(el) &&
+				el.getAttribute("data-dl-origin") !== "ai14all-downloads" &&
+				el.getAttribute("href") !== "/projects/ai-14all#download",
+		).length;
 		return {
 			total: links.length,
+			strayCoral,
 			firstViewport: links.filter((el) => {
 				const r = el.getBoundingClientRect();
 				return r.top < innerHeight && r.bottom > 0;
@@ -1500,6 +1548,11 @@ if (route === "/") {
 	if (dl.total !== 3) {
 		errors.push(
 			`/ @${viewport.width}px: expected exactly 3 visible download CTAs on the full page, got ${dl.total}`,
+		);
+	}
+	if (dl.strayCoral !== 0) {
+		errors.push(
+			`/ @${viewport.width}px: ${dl.strayCoral} visible coral-filled link(s) outside the approved download forms`,
 		);
 	}
 	if (viewport.width === 1440 && dl.firstViewport !== 2) {
