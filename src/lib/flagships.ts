@@ -60,16 +60,18 @@ export async function getFlagships(): Promise<Flagship[]> {
 				);
 			}
 		} else {
-			const allowed = (href: string | undefined) =>
-				!!href && (href.startsWith("mailto:") || href === `/projects/${id}`);
-			if (!allowed(hp.desktopCta.href) || !allowed(hp.mobileCta.href)) {
-				fail(`${id} CTA hrefs must be a mailto: or /projects/${id}`);
+			const route = `/projects/${id}`;
+			const { desktopCta, mobileCta } = hp;
+			if (desktopCta.label !== mobileCta.label || desktopCta.href !== mobileCta.href) {
+				fail(`${id} desktopCta and mobileCta must be identical in label and href`);
 			}
-			if (
-				!hp.desktopCta.href?.startsWith("mailto:") ||
-				!hp.mobileCta.href.startsWith("mailto:")
-			) {
-				fail(`${id} primary actions must be prefilled mailto: links`);
+			if (desktopCta.href !== route) {
+				fail(
+					`${id} CTA hrefs must be exactly ${route} — mailto: lives on the project page`,
+				);
+			}
+			if (desktopCta.label.trim() === "") {
+				fail(`${id} CTA label must be non-empty`);
 			}
 		}
 
