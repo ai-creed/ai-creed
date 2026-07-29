@@ -1,0 +1,90 @@
+<section id="how" class="sect container">
+	<p class="label">how it works</p>
+	<h2 class="title">three moves, one window.</h2>
+	<div class="steps">
+		<div class="step">
+			<p class="num">01</p>
+			<h3>fan out</h3>
+			<p>
+				hand one task to three agents — or three tasks to three agents. each runs in its own
+				git worktree: own branch, own terminal, no collisions.
+			</p>
+		</div>
+		<div class="step">
+			<p class="num">02</p>
+			<h3>stay oriented</h3>
+			<p>
+				the sidebar is mission control: <span class="st w">working · quiet</span>,
+				<span class="st r">ready · tests passed</span>,
+				<span class="st n">waiting · needs a decision</span>. glance, don't babysit.
+			</p>
+		</div>
+		<div class="step">
+			<p class="num">03</p>
+			<h3>review inline</h3>
+			<p>
+				highlight a line in the diff, leave a comment — the agent picks it up and fixes in
+				place. no PR round-trip, no copy-paste.
+			</p>
+		</div>
+	</div>
+</section>
+
+<style>
+	.sect {
+		border-top: 1px solid var(--border);
+		margin-top: var(--s-12);
+		padding-top: var(--s-8);
+		padding-bottom: var(--s-4);
+	}
+	.label {
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
+		color: var(--fg-muted);
+	}
+	.title {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: clamp(24px, 3.4vw, 34px);
+		line-height: 1.15;
+		margin-top: var(--s-3);
+		text-wrap: balance;
+	}
+	.steps {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--s-8);
+		margin-top: var(--s-8);
+	}
+	.step .num {
+		color: var(--accent);
+		font-weight: 600;
+		font-size: var(--fs-sm);
+	}
+	.step h3 {
+		margin-top: var(--s-2);
+		font-size: var(--fs-h3);
+	}
+	.step p:not(.num) {
+		margin-top: var(--s-3);
+		color: var(--fg-dim);
+		font-size: var(--fs-sm);
+	}
+	.st {
+		font-weight: 600;
+	}
+	.st.w {
+		color: var(--status-idle);
+	}
+	.st.r {
+		color: var(--status-done);
+	}
+	.st.n {
+		color: var(--status-waiting);
+	}
+	@media (max-width: 899px) {
+		.steps {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
