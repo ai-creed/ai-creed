@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>mockup — option A — ai-creed homepage</title>
+		<link rel="stylesheet" href="global.css" />
+		<style>
+			/* ——— mockup-only chrome ——— */
+			.mock-tag {
+				position: fixed;
+				bottom: 10px;
+				left: 10px;
+				z-index: 50;
+				font-size: var(--fs-xs);
+				color: var(--fg-muted);
+				border: 1px dashed var(--border);
+				border-radius: var(--radius);
+				padding: 2px 8px;
+				background: rgba(13, 13, 13, 0.8);
+			}
+
+			/* ——— header (unchanged from live site, single CTA) ——— */
+			.lh {
+				border-bottom: 1px solid var(--border);
+				padding: var(--s-3) 0;
+				font-size: var(--fs-sm);
+			}
+			.lh .row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: var(--s-4);
+			}
+			.brand {
+				display: inline-flex;
+				gap: var(--s-2);
+				align-items: center;
+				border: none;
+				color: var(--fg);
+			}
+			.brand .dot {
+				color: var(--accent);
+			}
+			.nav {
+				display: inline-flex;
+				gap: var(--s-4);
+				align-items: center;
+			}
+			.nav a {
+				border: none;
+				color: var(--fg-dim);
+				padding: var(--s-3) var(--s-1);
+			}
+			.nav a:hover {
+				color: var(--accent);
+			}
+
+			.btn {
+				display: inline-block;
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				padding: var(--s-3) var(--s-4);
+				font-size: var(--fs-sm);
+				font-weight: 600;
+			}
+			.btn.primary {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: var(--on-accent);
+			}
+			.btn.primary:hover {
+				background: var(--fg);
+				border-color: var(--fg);
+				color: var(--bg);
+			}
+			.btn.ghost {
+				color: var(--fg);
+			}
+			.btn.ghost:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+
+			/* ——— hero: copy above, real app frame below ——— */
+			.hero {
+				padding-top: var(--s-12);
+				text-align: center;
+			}
+			.eyebrow {
+				font-size: var(--fs-sm);
+				letter-spacing: 0.06em;
+				color: var(--fg-muted);
+			}
+			.eyebrow strong {
+				color: var(--fg);
+				font-weight: 600;
+			}
+			.display {
+				font-family: var(--font-display);
+				font-weight: 600;
+				font-size: var(--fs-display);
+				line-height: 1.12;
+				text-wrap: balance;
+				max-width: 24ch;
+				margin: var(--s-4) auto 0;
+			}
+			.sub {
+				margin: var(--s-4) auto 0;
+				color: var(--fg-dim);
+				max-width: 62ch;
+			}
+			.ctas {
+				display: flex;
+				flex-wrap: wrap;
+				gap: var(--s-3);
+				justify-content: center;
+				margin-top: var(--s-6);
+			}
+			.fine {
+				margin-top: var(--s-4);
+				font-size: var(--fs-xs);
+				color: var(--fg-muted);
+			}
+
+			/* the real-footage frame, styled as a click-to-play demo */
+			.frame-wrap {
+				margin-top: var(--s-8);
+				position: relative;
+			}
+			.frame {
+				position: relative;
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				overflow: hidden;
+				box-shadow:
+					0 0 0 1px rgba(255, 129, 99, 0.06),
+					0 24px 80px rgba(0, 0, 0, 0.55),
+					0 4px 24px rgba(255, 129, 99, 0.05);
+				cursor: pointer;
+			}
+			.frame img,
+			.frame video {
+				display: block;
+				width: 100%;
+				height: auto;
+			}
+			.play {
+				position: absolute;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: rgba(13, 13, 13, 0.12);
+				transition: background var(--dur) ease;
+			}
+			.frame:hover .play {
+				background: rgba(13, 13, 13, 0.02);
+			}
+			.play .ring {
+				width: 76px;
+				height: 76px;
+				border: 2px solid var(--accent);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: rgba(13, 13, 13, 0.55);
+				color: var(--accent);
+				font-size: 22px;
+				animation: breathe 3.2s ease-in-out infinite;
+			}
+			@keyframes breathe {
+				0%,
+				100% {
+					box-shadow: 0 0 0 0 rgba(255, 129, 99, 0);
+				}
+				50% {
+					box-shadow: 0 0 0 10px rgba(255, 129, 99, 0.16);
+				}
+			}
+			.frame-cap {
+				margin-top: var(--s-3);
+				font-size: var(--fs-xs);
+				color: var(--fg-muted);
+				text-align: center;
+			}
+
+			/* ——— shared section scaffolding ——— */
+			.sect {
+				border-top: 1px solid var(--border);
+				margin-top: var(--s-12);
+				padding-top: var(--s-8);
+				padding-bottom: var(--s-4);
+			}
+			.label {
+				font-size: var(--fs-xs);
+				letter-spacing: 0.08em;
+				color: var(--fg-muted);
+				text-transform: lowercase;
+			}
+			.sect h2.title {
+				font-family: var(--font-display);
+				font-weight: 600;
+				font-size: clamp(24px, 3.4vw, 34px);
+				line-height: 1.15;
+				margin-top: var(--s-3);
+				text-wrap: balance;
+			}
+
+			/* ——— how it works ——— */
+			.steps {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--s-8);
+				margin-top: var(--s-8);
+			}
+			.step .num {
+				color: var(--accent);
+				font-weight: 600;
+				font-size: var(--fs-sm);
+			}
+			.step h3 {
+				margin-top: var(--s-2);
+				font-size: var(--fs-h3);
+			}
+			.step p {
+				margin-top: var(--s-3);
+				color: var(--fg-dim);
+				font-size: var(--fs-sm);
+			}
+			.st {
+				font-weight: 600;
+			}
+			.st.w {
+				color: var(--status-idle);
+			}
+			.st.r {
+				color: var(--status-done);
+			}
+			.st.n {
+				color: var(--status-waiting);
+			}
+
+			/* ——— features (the non-hero capabilities) ——— */
+			.feats {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--s-6);
+				margin-top: var(--s-8);
+			}
+			.feat {
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				padding: var(--s-4);
+				background: var(--bg-raised);
+			}
+			.feat strong {
+				display: block;
+			}
+			.feat span {
+				display: block;
+				margin-top: var(--s-2);
+				color: var(--fg-dim);
+				font-size: var(--fs-sm);
+			}
+
+			/* ——— the loop extends: xavier + samantha ——— */
+			.duo {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: var(--s-6);
+				margin-top: var(--s-8);
+			}
+			.room {
+				border-radius: var(--radius);
+				padding: var(--s-6);
+			}
+			.room.xavier {
+				background: rgba(var(--tint-xavier), 0.05);
+				border: 1px solid rgba(var(--tint-xavier), 0.2);
+			}
+			.room.samantha {
+				background: rgba(var(--tint-samantha), 0.05);
+				border: 1px solid rgba(var(--tint-samantha), 0.2);
+			}
+			.room .head {
+				display: flex;
+				align-items: center;
+				gap: var(--s-3);
+			}
+			.chip {
+				font-size: var(--fs-xs);
+				border-radius: var(--radius);
+				padding: 1px 8px;
+			}
+			.chip.soon {
+				color: var(--status-waiting);
+				border: 1px solid var(--status-waiting);
+			}
+			.chip.early {
+				color: var(--status-ready);
+				border: 1px solid var(--status-ready);
+			}
+			.room .pitch {
+				margin-top: var(--s-3);
+				color: var(--fg);
+			}
+			.room .body {
+				margin-top: var(--s-2);
+				color: var(--fg-dim);
+				font-size: var(--fs-sm);
+			}
+			.room .act {
+				margin-top: var(--s-4);
+			}
+
+			/* ——— unchanged-section stubs ——— */
+			.stub {
+				border: 1px dashed var(--border);
+				border-radius: var(--radius);
+				margin-top: var(--s-6);
+				padding: var(--s-6);
+				text-align: center;
+				color: var(--fg-muted);
+				font-size: var(--fs-sm);
+			}
+			.stubs {
+				margin-top: var(--s-12);
+				margin-bottom: var(--s-12);
+			}
+
+			@media (max-width: 899px) {
+				.nav {
+					display: none;
+				}
+				.steps,
+				.feats,
+				.duo {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body class="wide">
+		<div class="mock-tag">mockup · option A · not the live site</div>
+
+		<header class="lh">
+			<div class="container row">
+				<a class="brand" href="#"><span class="dot">●</span><span>ai-creed</span></a>
+				<nav class="nav">
+					<a href="#how">how it works</a>
+					<a href="#ecosystem">the ecosystem</a>
+					<a href="#">north star</a>
+					<a href="#">creed</a>
+					<a class="btn primary" href="#">download ai-14all</a>
+				</nav>
+			</div>
+		</header>
+
+		<main>
+			<section class="hero container">
+				<p class="eyebrow">
+					<strong>ai-14all</strong> · desktop mission control for coding agents
+				</p>
+				<h1 class="display">ship with a fleet, not a single agent.</h1>
+				<p class="sub">
+					run claude, codex, and more in parallel — each agent in its own git worktree,
+					with its own branch and terminal. see who needs you at a glance, review diffs
+					inline, stay in one window.
+				</p>
+				<div class="ctas">
+					<a class="btn primary" href="#">download ai-14all</a>
+					<a class="btn ghost" href="#how">see how it works</a>
+				</div>
+				<p class="fine">shipping now · source-available · macOS universal + windows x64</p>
+
+				<div class="frame-wrap">
+					<div class="frame">
+						<video
+							src="tour-prototype.mp4"
+							poster="14all-frame.jpg"
+							controls
+							playsinline
+							preload="none"
+							aria-label="guided tour of the real ai-14all app: worktree sidebar, parallel agent terminals, inline review"
+						></video>
+					</div>
+					<p class="frame-cap">
+						click to play — a 21s guided tour of the real app: worktrees → parallel
+						agents → inline review (prototype: scripted camera over the existing 7.5s
+						recording)
+					</p>
+				</div>
+			</section>
+
+			<section id="how" class="sect container">
+				<p class="label">how it works</p>
+				<h2 class="title">three moves, one window.</h2>
+				<div class="steps">
+					<div class="step">
+						<p class="num">01</p>
+						<h3>fan out</h3>
+						<p>
+							hand one task to three agents — or three tasks to three agents. each
+							runs in its own git worktree: own branch, own terminal, no collisions.
+						</p>
+					</div>
+					<div class="step">
+						<p class="num">02</p>
+						<h3>stay oriented</h3>
+						<p>
+							the sidebar is mission control:
+							<span class="st w">working · quiet</span>,
+							<span class="st r">ready · tests passed</span>,
+							<span class="st n">waiting · needs a decision</span>. glance, don't
+							babysit.
+						</p>
+					</div>
+					<div class="step">
+						<p class="num">03</p>
+						<h3>review inline</h3>
+						<p>
+							highlight a line in the diff, leave a comment — the agent picks it up
+							and fixes in place. no PR round-trip, no copy-paste.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="sect container">
+				<p class="label">and while they work</p>
+				<div class="feats">
+					<div class="feat">
+						<strong>browse and verify without leaving</strong>
+						<span>file view, diff review, and jump-to-symbol built in.</span>
+					</div>
+					<div class="feat">
+						<strong>compose the ecosystem</strong>
+						<span
+							>ai-cortex remembers your codebase, ai-whisper runs autonomous
+							workflows.</span
+						>
+					</div>
+					<div class="feat">
+						<strong>track what agents cost</strong>
+						<span>estimated per-session token and spend telemetry.</span>
+					</div>
+				</div>
+			</section>
+
+			<section id="ecosystem" class="sect container">
+				<p class="label">the loop extends</p>
+				<h2 class="title">14all is the desk. the loop follows you off it.</h2>
+				<div class="duo">
+					<div class="room xavier">
+						<div class="head">
+							<h3>ai-xavier</h3>
+							<span class="chip soon">coming soon</span>
+						</div>
+						<p class="pitch">your phone is presence.</p>
+						<p class="body">
+							watch live terminals, answer the prompt that is blocking an agent,
+							steer, or interrupt — from anywhere.
+						</p>
+						<p class="act"><a class="btn ghost" href="#">learn about ai-xavier</a></p>
+					</div>
+					<div class="room samantha">
+						<div class="head">
+							<h3>ai-samantha</h3>
+							<span class="chip early">early access</span>
+						</div>
+						<p class="pitch">supervision, out loud.</p>
+						<p class="body">
+							she watches the same sessions you do and answers out loud — speech
+							recognition and voice synthesis run fully on your machine.
+						</p>
+						<p class="act"><a class="btn ghost" href="#">request early access</a></p>
+					</div>
+				</div>
+			</section>
+
+			<div class="container stubs">
+				<div class="stub">
+					↓ the engineering loop — autonomous spec → plan → review workflow (section
+					unchanged)
+				</div>
+				<div class="stub">↓ recently shipped — the real ship log (unchanged)</div>
+				<div class="stub">↓ creed · engine room · closing cta · footer (unchanged)</div>
+			</div>
+		</main>
+	</body>
+</html>
