@@ -259,16 +259,32 @@ section, and LandingFooter render exactly as today, in today's order.
 - creed → `#creed` (unchanged)
 - download CTA: unchanged.
 
+Nav enforcement (`check:copy`, §8), asserted per variant — not
+globally, because both legacy ids intentionally remain valid targets:
+in `header.lh .nav-desktop` and in `header.lh .nav-mobile nav` alike,
+the fragment links must be **exactly** the four entries above, in
+order, with label→href equality (whitespace-normalized `textContent`
+"how it works" paired with `href="#how"`, and so on for all four) and
+exact cardinality — no fifth fragment link and no leftover
+"the system"/"products" entry in either variant. An unchanged mobile
+menu therefore fails even though its fragments still resolve.
+
 Legacy anchor preservation (inbound links must not break): `id="system"`
 stays on the hero section; an in-flow, visually-empty anchor with
 `id="products"` sits at the top of the LoopExtends section. Anchor
 integrity is machine-enforced, not a plan step, by the new `check:copy`
 guard (§8) in two parts: (a) generic — any in-page `href="#…"` in
-`dist/index.html` without a matching `id` fails; (b) explicit — the ids
-`system` and `products` must each exist in `dist/index.html`, asserted
-by name. Clause (b) is required because the revised nav no longer links
-to those fragments; they protect **external** inbound links, which the
-generic href→id check cannot see.
+`dist/index.html` without a matching `id` fails; (b) explicit and
+**positional** — `id="system"` must be the id of the hero section
+element itself (also independently forced by the §11.3 `#system h1`
+copy assertion, which cannot match unless the hero h1 sits inside
+`#system`), and the `id="products"` anchor must be the **first element
+child of `#ecosystem`** (the LoopExtends section), so inbound
+`#products` links land at the top of that region. Existence alone is
+not sufficient — either id present but outside its required position
+(e.g. moved to the footer) fails. Clause (b) is required because the
+revised nav no longer links to those fragments; they protect
+**external** inbound links, which the generic href→id check cannot see.
 
 ## 7. File impact
 
@@ -319,11 +335,12 @@ generic href→id check cannot see.
   the same static-server pattern as `check-a11y.mjs` — a static HTML
   parser is not acceptable, because the guard must evaluate computed
   visibility; never regex substring matching. It renders at both
-  1440×900 and 390×844 and asserts: the §11.2 markup-layer download-CTA
-  counts, the §11.3 selector-scoped verbatim-copy table (every entry
-  computed-visibility checked), the §11.3 video `aria-label` attribute
-  equality, and the §11.4 anchor checks (generic href→id plus explicit
-  legacy-id existence).
+  1440×900 and 390×844 and asserts: the §11.2 per-region and total
+  markup-layer download-CTA counts, the §11.3 selector-scoped
+  verbatim-copy table (every entry computed-visibility checked), the
+  §11.3 video `aria-label` attribute equality, and the §11.4 anchor and
+  nav checks (generic href→id, positional legacy-id assertions, and
+  per-variant §6 nav label→href equality with exact cardinality).
 - **`check:a11y` (extended).** Adds homepage visibility assertions
   (§11.2): at 1440×900, exactly 2 coral download CTAs visible in the
   viewport at scroll 0; and at each of 1440×900 and 390×844, exactly 3
@@ -372,16 +389,22 @@ untouched and remain in force.
    (amended ceiling), `check:downloads`, `check:a11y` (extended, §8),
    `check:copy` (new, §8), `lighthouse` (amended LCP, ratcheted).
 2. Download-CTA counts, machine-asserted at two layers. Markup layer
-   (`check:copy`): exactly 3 links with
-   `data-dl-origin="ai14all-downloads"` and exactly 3 primary-styled
-   links with `href="/projects/ai-14all#download"` in `dist/index.html`
-   — the dual desktop/mobile pattern for header, hero, and closing CTA,
-   and nothing else coral-download on the page. Rendered layer
-   (`check:a11y`, which owns visibility): exactly 2 coral download CTAs
-   visible in the 1440×900 viewport at scroll 0, and exactly 3 download
-   CTAs visible over the complete page at each of 1440×900 and 390×844 —
-   so a responsive pair leaking both variants (four visible full-page
-   CTAs) fails even while every markup count passes.
+   (`check:copy`), asserted **per region and in total**: each of the
+   three regions — `header.lh`, the hero (`#system`), and the closing
+   CTA section (`section.closing`) — must contain exactly one
+   module-fed desktop link with `data-dl-origin="ai14all-downloads"`
+   and exactly one coral mobile link with
+   `href="/projects/ai-14all#download"` (the header's `a.cta`; the
+   hero's and closing's `.btn.primary` mobile variants); document-wide
+   totals are therefore exactly 3 of each, with nothing else
+   coral-download on the page. Global totals alone are not sufficient —
+   a region missing its pair while another region duplicates one fails.
+   Rendered layer (`check:a11y`, which owns visibility): exactly 2
+   coral download CTAs visible in the 1440×900 viewport at scroll 0,
+   and exactly 3 download CTAs visible over the complete page at each
+   of 1440×900 and 390×844 — so a responsive pair leaking both variants
+   (four visible full-page CTAs) fails even while every markup count
+   passes.
 3. Verbatim copy, machine-asserted at the rendered semantic layer.
    `check:copy` carries the binding §4 strings (hero eyebrow, h1, sub,
    fine line, caption; the hero primary and ghost CTA labels; the three
@@ -404,12 +427,18 @@ untouched and remain in force.
    (attribute equality — `textContent` cannot see it). Substring
    presence anywhere in the file is never sufficient — hidden,
    duplicated, or wrong-section text fails.
-4. Anchor integrity, machine-asserted. `check:copy` fails if (a) any
-   in-page `href="#…"` in `dist/index.html` lacks a matching `id` — the
-   §6 nav targets — or (b) either legacy id, `system` or `products`, is
-   absent from `dist/index.html`, asserted by name. Clause (b) exists
-   because the revised nav no longer references those fragments, so the
-   generic check alone would not catch their removal.
+4. Anchor and nav integrity, machine-asserted. `check:copy` fails if
+   (a) any in-page `href="#…"` in `dist/index.html` lacks a matching
+   `id`; (b) either legacy id is absent **or out of position** —
+   `system` must be the hero section's own id and `products` must be
+   the first element child of `#ecosystem` (§6), so an id parked
+   elsewhere (e.g. the footer) fails; or (c) either nav variant
+   deviates from §6 — in `header.lh .nav-desktop` and
+   `header.lh .nav-mobile nav` alike, the fragment links must be
+   exactly the four §6 entries, in order, with label→href equality and
+   no extra or leftover fragment link. Clause (c) exists because both
+   legacy ids intentionally remain valid targets, so fragment-validity
+   alone would let an unchanged mobile menu pass.
 5. Comprehension, evidence-reviewed. The implementation commits
    full-page screenshots of the built homepage at 1440×900 and 390×844
    to `docs/superpowers/evidence/2026-07-29-landing-restructure/`; the
