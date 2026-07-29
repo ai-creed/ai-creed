@@ -241,9 +241,13 @@ section, and LandingFooter render exactly as today, in today's order.
   (Playwright page: frame image as backdrop + ring overlay, screenshot).
   Same aspect as the video (1600×844 or a scaled equivalent), ≤ 150,000
   bytes.
-- **Media guard compliance** (`check:media`, unchanged): `controls`,
-  `playsinline`, `preload="none"`, `poster`, no `autoplay`. The mp4 is
-  excluded from the byte budget (preload="none"); the poster is counted.
+- **Media guard compliance** (`check:media`, extended): the committed
+  guard enforces `controls`, `preload="none"`, `poster`, and no
+  `autoplay`, but does **not** check `playsinline` today —
+  `scripts/check-media.mjs` gains an explicit video-only assertion that
+  every `<video>` in dist carries `playsinline` (audio elements exempt).
+  The mp4 is excluded from the byte budget (preload="none"); the poster
+  is counted.
 
 ## 6. Navigation and anchors
 
@@ -285,6 +289,7 @@ generic href→id check cannot see.
   `src/lib/flagships.ts` (non-14all CTA rule: both hrefs exactly
   `/projects/<id>`, §4.4), `scripts/generate-posters.mjs` (real-frame
   variant), `scripts/check-homepage-budget.mjs` (§8),
+  `scripts/check-media.mjs` (video-only `playsinline` assertion, §5),
   `scripts/check-a11y.mjs` (first-viewport CTA assertion, §8),
   `lighthouserc.json` (§8), `package.json` (wire `check:copy`),
   `.github/workflows/deploy.yml` (run `check:copy` in the deploy gate
@@ -309,13 +314,16 @@ generic href→id check cannot see.
   both binding.
 - **`check:copy` (new guard).** `scripts/check-homepage-copy.mjs`, wired
   as `pnpm check:copy` and into the deploy gate
-  (`.github/workflows/deploy.yml`) beside the other guards. DOM-level
-  assertions against the built homepage — parse `dist/index.html` into a
-  real DOM (headless chromium over the same static-server pattern as
-  `check-a11y.mjs`, or an equivalent HTML parser), never regex substring
-  matching: the §11.2 markup-layer download-CTA counts, the §11.3
-  selector-scoped verbatim-copy table, and the §11.4 anchor checks
-  (generic href→id plus explicit legacy-id existence).
+  (`.github/workflows/deploy.yml`) beside the other guards. Rendered-DOM
+  assertions against the built homepage in **headless chromium** over
+  the same static-server pattern as `check-a11y.mjs` — a static HTML
+  parser is not acceptable, because the guard must evaluate computed
+  visibility; never regex substring matching. It renders at both
+  1440×900 and 390×844 and asserts: the §11.2 markup-layer download-CTA
+  counts, the §11.3 selector-scoped verbatim-copy table (every entry
+  computed-visibility checked), the §11.3 video `aria-label` attribute
+  equality, and the §11.4 anchor checks (generic href→id plus explicit
+  legacy-id existence).
 - **`check:a11y` (extended).** Adds homepage visibility assertions
   (§11.2): at 1440×900, exactly 2 coral download CTAs visible in the
   viewport at scroll 0; and at each of 1440×900 and 390×844, exactly 3
@@ -323,7 +331,9 @@ generic href→id check cannot see.
   only when actually rendered visible, so the hidden half of each
   responsive desktop/mobile pair must not count and a pair leaking both
   variants fails. All existing checks unchanged, must stay green.
-- **`check:media`, `check:downloads`:** unchanged, must stay green.
+- **`check:media` (extended).** Adds the video-only `playsinline`
+  assertion (§5). All existing checks unchanged, must stay green.
+- **`check:downloads`:** unchanged, must stay green.
 
 ## 9. Accessibility
 
@@ -358,9 +368,9 @@ inherited §10 automated checks, visual checks, the
 two-actions-to-download rule, and the claims-traceability rule are
 untouched and remain in force.
 
-1. All six guards green: `check:media`, `check:budget` (amended ceiling),
-   `check:downloads`, `check:a11y` (extended, §8), `check:copy` (new,
-   §8), `lighthouse` (amended LCP, ratcheted).
+1. All six guards green: `check:media` (extended, §5/§8), `check:budget`
+   (amended ceiling), `check:downloads`, `check:a11y` (extended, §8),
+   `check:copy` (new, §8), `lighthouse` (amended LCP, ratcheted).
 2. Download-CTA counts, machine-asserted at two layers. Markup layer
    (`check:copy`): exactly 3 links with
    `data-dl-origin="ai14all-downloads"` and exactly 3 primary-styled
@@ -374,15 +384,26 @@ untouched and remain in force.
    CTAs) fails even while every markup count passes.
 3. Verbatim copy, machine-asserted at the rendered semantic layer.
    `check:copy` carries the binding §4 strings (hero eyebrow, h1, sub,
-   fine line, caption; the three step bodies; the three feature cards;
-   section titles; duo pitches, bodies, chips, and CTA labels) as a
-   **selector → expected-text table**: each string is asserted as
-   whitespace-normalized `textContent` equality on the specific semantic
-   element that must carry it (e.g. `#system h1`; the step-02 `<p>`
-   normalized across its status spans; the samantha card's ghost CTA
-   link), each with an expected occurrence count (1 unless the table
-   states otherwise). Substring presence anywhere in the file is not
-   sufficient — hidden, duplicated, or wrong-section text fails.
+   fine line, caption; the hero primary and ghost CTA labels; the three
+   step bodies; the three feature cards; section titles; duo pitches,
+   bodies, chips, and CTA labels) as a **selector → expected-text
+   table**: each string is asserted as whitespace-normalized
+   `textContent` equality on the specific semantic element that must
+   carry it (e.g. `#system h1`; the step-02 `<p>` normalized across its
+   status spans; the samantha card's ghost CTA link), each with an
+   expected occurrence count (1 unless the table states otherwise — the
+   hero primary label's responsive desktop/mobile pair is the recorded
+   exception). Every table entry is additionally **computed-visibility
+   checked** in chromium: the matched element must be rendered visible
+   (not `display:none` / `visibility:hidden` / zero-sized /
+   `.visually-hidden`) at both 1440×900 and 390×844, except entries the
+   table marks as a responsive variant, which must be visible at the
+   viewport the table names and hidden at the other. A hidden h1 with no
+   visible h1 therefore fails. Separately, the hero `<video>`'s
+   `aria-label` **attribute** must equal the §4.1 string exactly
+   (attribute equality — `textContent` cannot see it). Substring
+   presence anywhere in the file is never sufficient — hidden,
+   duplicated, or wrong-section text fails.
 4. Anchor integrity, machine-asserted. `check:copy` fails if (a) any
    in-page `href="#…"` in `dist/index.html` lacks a matching `id` — the
    §6 nav targets — or (b) either legacy id, `system` or `products`, is
