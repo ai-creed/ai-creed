@@ -98,6 +98,54 @@ for (const viewport of VIEWPORTS) {
 				errors.push(`${route} @390px: interactive target under 44×44px — ${target}`);
 			}
 		}
+		if (route === "/") {
+			// spec 2026-07-29 §11.2 rendered layer: download-CTA visibility.
+			const dl = await page.evaluate(() => {
+				const isVisible = (el) => {
+					const cs = getComputedStyle(el);
+					if (cs.display === "none" || cs.visibility === "hidden") return false;
+					const r = el.getBoundingClientRect();
+					return r.width > 1 && r.height > 1;
+				};
+				const links = [
+					...document.querySelectorAll(
+						'a[data-dl-origin="ai14all-downloads"], a[href="/projects/ai-14all#download"]',
+					),
+				].filter(isVisible);
+				// coral exclusivity (spec §11.2): no VISIBLE accent-filled anchor may
+				// exist outside the two approved forms — computed style, not classes.
+				const strayCoral = [...document.querySelectorAll("a")].filter(
+					(el) =>
+						getComputedStyle(el).backgroundColor === "rgb(255, 129, 99)" &&
+						isVisible(el) &&
+						el.getAttribute("data-dl-origin") !== "ai14all-downloads" &&
+						el.getAttribute("href") !== "/projects/ai-14all#download",
+				).length;
+				return {
+					total: links.length,
+					strayCoral,
+					firstViewport: links.filter((el) => {
+						const r = el.getBoundingClientRect();
+						return r.top < innerHeight && r.bottom > 0;
+					}).length,
+				};
+			});
+			if (dl.total !== 3) {
+				errors.push(
+					`/ @${viewport.width}px: expected exactly 3 visible download CTAs on the full page, got ${dl.total}`,
+				);
+			}
+			if (dl.strayCoral !== 0) {
+				errors.push(
+					`/ @${viewport.width}px: ${dl.strayCoral} visible coral-filled link(s) outside the approved download forms`,
+				);
+			}
+			if (viewport.width === 1440 && dl.firstViewport !== 2) {
+				errors.push(
+					`/ @1440px: expected exactly 2 download CTAs in the first viewport, got ${dl.firstViewport}`,
+				);
+			}
+		}
 	}
 	await page.close();
 }

@@ -21,6 +21,17 @@ for (const page of pages) {
 		if (!/\bcontrols\b/i.test(tag)) errors.push(`controls required — ${where}`);
 		if (/<video/i.test(tag) && !/\bposter=/i.test(tag))
 			errors.push(`poster required — ${where}`);
+		if (/<video/i.test(tag)) {
+			const attrNames = tag
+				.replace(/"[^"]*"/g, '""') // blank out double-quoted values
+				.replace(/'[^']*'/g, "''") // blank out single-quoted values
+				.replace(/^<\w+/, "")
+				.replace(/\/?>$/, "")
+				.split(/\s+/)
+				.map((a) => a.split("=")[0].toLowerCase())
+				.filter(Boolean);
+			if (!attrNames.includes("playsinline")) errors.push(`playsinline required — ${where}`);
+		}
 	}
 }
 
