@@ -4,7 +4,99 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>mockup — option A — ai-creed homepage</title>
-		<link rel="stylesheet" href="global.css" />
+		<!-- self-contained: the token/base subset of src/styles/global.css is
+		     inlined below so this mockup renders from its committed location
+		     (docs/superpowers/specs/) with no external stylesheet dependency. -->
+		<style>
+			:root {
+				--bg: #0d0d0d;
+				--bg-raised: #141414;
+				--border: #222;
+				--fg: #e6e6e6;
+				--fg-dim: #8a8a8a;
+				--fg-muted: #868686;
+				--accent: #ff8163;
+				--on-accent: #0d0d0d;
+				--status-waiting: #d4a24c;
+				--status-done: #5eb95e;
+				--status-ready: #5da9e0;
+				--status-idle: #8a8a8a;
+				--tint-xavier: 179, 160, 138;
+				--tint-samantha: 168, 120, 200;
+				--font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+				--font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+				--fs-xs: 11px;
+				--fs-sm: 13px;
+				--fs-base: 15px;
+				--fs-h3: 18px;
+				--fs-display: clamp(32px, 6vw, 52px);
+				--s-1: 4px;
+				--s-2: 8px;
+				--s-3: 12px;
+				--s-4: 16px;
+				--s-6: 24px;
+				--s-8: 32px;
+				--s-12: 48px;
+				--max-w-wide: 1120px;
+				--page-max-w: 720px;
+				--radius: 2px;
+				--dur: 150ms;
+			}
+			@font-face {
+				font-family: "Fraunces";
+				src: url("../../../public/fonts/fraunces-latin-600.woff2") format("woff2");
+				font-weight: 600;
+				font-style: normal;
+				font-display: swap;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+				background: var(--bg);
+				color: var(--fg);
+				font-family: var(--font-mono);
+				font-size: var(--fs-base);
+				line-height: 1.55;
+				-webkit-font-smoothing: antialiased;
+			}
+			a {
+				color: var(--fg);
+				text-decoration: none;
+				border-bottom: 1px solid var(--border);
+				transition:
+					border-color var(--dur) ease,
+					color var(--dur) ease;
+			}
+			a:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+			h1,
+			h2,
+			h3 {
+				font-family: var(--font-mono);
+				font-weight: 600;
+				margin: 0;
+			}
+			h3 {
+				font-size: var(--fs-h3);
+			}
+			p {
+				margin: 0;
+			}
+			.container {
+				max-width: var(--page-max-w);
+				margin: 0 auto;
+				padding: 0 var(--s-4);
+			}
+			body.wide {
+				--page-max-w: var(--max-w-wide);
+			}
+		</style>
 		<style>
 			/* ——— mockup-only chrome ——— */
 			.mock-tag {
@@ -377,9 +469,13 @@
 
 				<div class="frame-wrap">
 					<div class="frame">
+						<!-- stand-in media: the approved prototype tour render was
+						     session-temporary and is regenerated at implementation time
+						     (spec §5). These relative paths reach the committed source
+						     recording so the mockup renders from a repo checkout. -->
 						<video
-							src="tour-prototype.mp4"
-							poster="14all-frame.jpg"
+							src="../../../public/ai-14all/hero-demo.mp4"
+							poster="../../../public/ai-14all/hero-demo-poster.jpg"
 							controls
 							playsinline
 							preload="none"

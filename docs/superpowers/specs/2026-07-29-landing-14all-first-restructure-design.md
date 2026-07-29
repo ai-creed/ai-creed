@@ -1,13 +1,20 @@
 # Landing Page 14all-First Restructure — Design
 
-- **Date:** 2026-07-29
-- **Status:** awaiting operator review
+- **Date:** 2026-07-29 · revised 2026-07-30 (SDD reviewer findings)
+- **Status:** approved implementation contract — SDD workflow
+  `wf_c56df324a73d473a`. No operator gate remains: §2 decision 5 is
+  resolved on recorded operator direction, and every §11 criterion has an
+  autonomous evidence path.
 - **Amends:** `docs/superpowers/specs/2026-07-28-ai-creed-landing-redesign-design.md`
   (page structure, hero, and two guard thresholds; everything else in that
   spec — tokens, guard suite, project pages, zero-JS contract — stands)
 - **Approved mockup:** `2026-07-29-landing-14all-first-restructure-mockup.html`
   (same directory; canonical copy at
-  `~/.ai-pref-nsync/local-docs/ai-creed/brainstorm/2026-07-29-landing-restructure-mockup-a.html`)
+  `~/.ai-pref-nsync/local-docs/ai-creed/brainstorm/2026-07-29-landing-restructure-mockup-a.html`).
+  Self-contained from its committed location: the token/base subset of
+  `global.css` is inlined, and the hero media are stand-ins pointing at the
+  committed `public/ai-14all/` source recording via relative paths (the
+  approved prototype tour render was session-temporary; §5 regenerates it).
 
 ## 1. Motivation
 
@@ -40,16 +47,23 @@ labeled section below the hero.
    The homepage treats the video as an interface (§5); swapping the asset
    later is not a page change.
 5. **Xavier/samantha real hero visuals come later** with the same
-   treatment; their cards are text-first for now. This knowingly and
-   temporarily overrides the recorded constraint
+   treatment; their cards are text-first for now. This **supersedes** the
+   recorded constraint
    `mem-2026-07-28-all-three-flagship-products-need-addd26` ("do not
-   reduce xavier or samantha to text-only cards"): the research verdict
-   (real imagery or none — never fake CSS UI) removes the old CSS visuals,
-   and real footage for both doesn't exist yet. Resolution: the duo cards
-   are interim text-first with a designed-in visual slot (§4.4); restoring
-   full product-specific visual presence via real posters/footage is a
-   committed follow-up, not an option. Flagged for operator sign-off in
-   spec review.
+   reduce xavier or samantha to text-only cards") for the interim, on the
+   authority of explicit operator direction already on record (2026-07-29:
+   "we can do the restructure now … replacing the hero video later (along
+   with real hero for other apps: phone and samantha)"). The research
+   verdict (real imagery or none — never fake CSS UI) removes the old CSS
+   visuals, and real footage for both doesn't exist yet. Resolution —
+   durable, no further sign-off required: the duo cards are interim
+   text-first with a designed-in visual slot (§4.4); the constraint memory
+   has been amended to this resolved form; and restoring full
+   product-specific visual presence via real posters/footage is committed
+   follow-up work tracked by the deferred memory
+   `mem-2026-07-29-restore-real-xavier-samantha-visual-2b271c` (revisit:
+   fixture pipeline delivers production masters, real footage otherwise
+   exists, or the operator asks).
 
 ## 3. Page composition
 
@@ -112,6 +126,13 @@ container (1120px).
 - Caption below frame (fs-xs, muted): click to play — a 21-second guided
   tour of the real app: worktrees → parallel agents → inline review
 
+Content model (inherited §7.1 — project positioning stays in
+frontmatter): the h1 and sub render from the ai-14all entry's
+`homepage.headline` / `homepage.summary`; the §4.1 strings above are the
+values to write into `ai-14all.mdx`. The eyebrow framing, fine-line
+suffix, and caption are section-structural copy and live in the
+component; only the availability word is frontmatter-derived.
+
 ### 4.2 How it works (`HowItWorks.astro`, `id="how"`)
 
 Label: how it works · Title (display): three moves, one window. · Three
@@ -164,6 +185,25 @@ follows you off it. · Two tinted room cards (grid 2-up, stacking at
   request links). Claims boundary: fully-local claim applies to _speech_
   only, exactly as worded above — never "fully local AI".
 
+Content model (single source of truth, resolving the inherited §7.1
+contract against the new CTAs): the duo cards render from frontmatter,
+never hardcoded copy — chip from `homepage.availability`, pitch from
+`homepage.headline`, body from `homepage.summary`, ghost CTA label/href
+from `homepage.desktopCta` (`mobileCta` must be identical; the
+desktop/mobile split is meaningless for non-14all flagships). The card
+copy above is binding as the **values to write into**
+`ai-xavier.mdx` / `ai-samantha.mdx` frontmatter. Homepage duo CTAs route
+to project pages; prefilled `mailto:` interest links live **only** on the
+project pages (which already carry them). `src/lib/flagships.ts` is
+amended to enforce the chosen model: for non-14all flagships, both CTA
+hrefs must equal `/projects/<id>` exactly (replacing today's
+must-be-mailto rule, so no contradictory frontmatter can survive the
+build), labels non-empty, and the xavier no-install-destination patterns
+stay. No `content.config.ts` schema change is needed — the existing
+`cta` shape already fits. The recorded mobile-CTAs-route decision's
+intent is preserved: a project-page route never implies a
+phone-installable desktop app.
+
 Both cards are built with a **visual slot**: the card layout must accept a
 future poster image or click-to-play video above the pitch without
 restructuring (an optional named slot / prop in the component). Interim
@@ -213,21 +253,34 @@ section, and LandingFooter render exactly as today, in today's order.
 
 Legacy anchor preservation (inbound links must not break): `id="system"`
 stays on the hero section; an in-flow, visually-empty anchor with
-`id="products"` sits at the top of the LoopExtends section. After build,
-no in-page `href="#…"` in dist may lack a matching id — no guard checks
-this today, so the implementation plan must include an explicit
-grep-dist verification step (or add the check to `check-a11y.mjs`).
+`id="products"` sits at the top of the LoopExtends section. Anchor
+integrity is machine-enforced, not a plan step: the new `check:copy`
+guard (§8) fails the build if any in-page `href="#…"` in
+`dist/index.html` lacks a matching `id`.
 
 ## 7. File impact
 
 - **Create:** `src/components/Hero14all.astro`, `HowItWorks.astro`,
   `HomeFeatures.astro`, `LoopExtends.astro`;
-  `scripts/generate-hero-tour.mjs`; `public/ai-14all/hero-tour.mp4`,
-  `hero-tour-poster.jpg`.
+  `scripts/generate-hero-tour.mjs`; `scripts/check-homepage-copy.mjs`
+  (the `check:copy` guard, §8); `public/ai-14all/hero-tour.mp4`,
+  `hero-tour-poster.jpg`;
+  `docs/superpowers/evidence/2026-07-29-landing-restructure/` screenshots
+  (§11.5).
 - **Modify:** `src/pages/index.astro` (new composition; CHAPTER_COPY and
   VISUALS maps go away), `src/components/LandingHeader.astro` (nav labels,
-  §6), `scripts/generate-posters.mjs` (real-frame variant),
-  `scripts/check-homepage-budget.mjs` (§8), `lighthouserc.json` (§8).
+  §6), `src/content/projects/ai-14all.mdx` (`homepage.headline` /
+  `homepage.summary` take the §4.1 h1/sub values),
+  `src/content/projects/ai-xavier.mdx` and `ai-samantha.mdx`
+  (`homepage.headline`/`homepage.summary` take the §4.4 pitch/body values;
+  `desktopCta`/`mobileCta` become the §4.4 project-page CTAs),
+  `src/lib/flagships.ts` (non-14all CTA rule: both hrefs exactly
+  `/projects/<id>`, §4.4), `scripts/generate-posters.mjs` (real-frame
+  variant), `scripts/check-homepage-budget.mjs` (§8),
+  `scripts/check-a11y.mjs` (first-viewport CTA assertion, §8),
+  `lighthouserc.json` (§8), `package.json` (wire `check:copy`),
+  `.github/workflows/deploy.yml` (run `check:copy` in the deploy gate
+  beside the other guards). No `src/content.config.ts` change (§4.4).
 - **Delete:** `src/components/EcosystemHero.astro`,
   `src/components/FlagshipChapter.astro` (verified: referenced only by
   `index.astro`). `Ai14allVisual` / `XavierVisual` / `SamanthaVisual`
@@ -246,8 +299,15 @@ grep-dist verification step (or add the check to `check-a11y.mjs`).
   implementation measures the real 3-run median on the built page and
   commits median × 1.15 (rounded up) as the final threshold, never above 2499. Keep `categories:performance ≥ 0.95` and CLS ≤ 0.019 unchanged —
   both binding.
-- **`check:media`, `check:a11y`, `check:downloads`:** unchanged, must stay
-  green.
+- **`check:copy` (new guard).** `scripts/check-homepage-copy.mjs`, wired
+  as `pnpm check:copy` and into the deploy gate
+  (`.github/workflows/deploy.yml`) beside the other guards. Static
+  assertions against `dist/index.html`: the §11.2 download-CTA counts,
+  the §11.3 verbatim-copy list, and the §11.4 anchor-integrity check.
+- **`check:a11y` (extended).** Adds one homepage assertion at 1440×900:
+  exactly 2 coral download CTAs visible in the viewport at scroll 0
+  (§11.2). All existing checks unchanged, must stay green.
+- **`check:media`, `check:downloads`:** unchanged, must stay green.
 
 ## 9. Accessibility
 
@@ -268,13 +328,32 @@ closing CTA section and footer; dependency upgrades.
 
 ## 11. Success criteria
 
-1. All five guards green: `check:media`, `check:budget` (amended ceiling),
-   `check:downloads`, `check:a11y`, `lighthouse` (amended LCP, ratcheted).
-2. Exactly 2 coral download CTAs in the 1440×900 first viewport; 3 on the
-   full page.
-3. Rendered copy matches §4 verbatim.
-4. All nav anchors and legacy `#system`/`#products` inbound anchors
-   resolve in dist.
-5. Qualitative (operator judges on the built page): a first-time reader
-   can answer "what is 14all", "how does it work", and feels the
-   want-to-try pull within the first two viewports.
+Every criterion has an autonomous evidence path; none blocks on a human.
+Operator judgment is welcome post-ship but does not gate this workflow.
+
+1. All six guards green: `check:media`, `check:budget` (amended ceiling),
+   `check:downloads`, `check:a11y` (extended, §8), `check:copy` (new,
+   §8), `lighthouse` (amended LCP, ratcheted).
+2. Download-CTA counts, machine-asserted. `check:copy` requires, in
+   `dist/index.html`, exactly 3 links with
+   `data-dl-origin="ai14all-downloads"` and exactly 3 primary-styled
+   links with `href="/projects/ai-14all#download"` — the dual
+   desktop/mobile pattern for header, hero, and closing CTA, and nothing
+   else coral-download on the page. `check:a11y` additionally asserts
+   exactly 2 coral download CTAs visible in the 1440×900 viewport at
+   scroll 0.
+3. Verbatim copy, machine-asserted. `check:copy` carries the binding §4
+   strings (hero eyebrow, h1, sub, fine line, caption; the three step
+   bodies; the three feature cards; section titles; duo pitches, bodies,
+   chips, and CTA labels) and fails unless each appears in
+   `dist/index.html` exactly as written.
+4. Anchor integrity, machine-asserted. `check:copy` fails if any in-page
+   `href="#…"` in `dist/index.html` lacks a matching `id` — this covers
+   the §6 nav targets and the legacy `#system`/`#products` anchors.
+5. Comprehension, evidence-reviewed. The implementation commits
+   full-page screenshots of the built homepage at 1440×900 and 390×844
+   to `docs/superpowers/evidence/2026-07-29-landing-restructure/`; the
+   workflow reviewer judges from them that a first-time reader can
+   answer "what is 14all" and "how does it work" and feels the
+   want-to-try pull within the first two viewports. The operator may
+   overrule after shipping; that judgment does not block this workflow.
