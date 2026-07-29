@@ -1493,12 +1493,15 @@ git commit -m "test(guards): check:copy — rendered copy, CTA distribution, nav
 After the existing poster check inside the tag loop, add an
 attribute-token check. A plain word-boundary regex would also accept
 `data-playsinline="false"` or the word inside an attribute VALUE, so the
-tag is tokenized into attribute NAMES first (values blanked out):
+tag is tokenized into attribute NAMES first — with BOTH quote styles
+blanked out, since HTML permits `aria-label='foo playsinline bar'` and a
+double-quote-only pass would misread that value as attribute names:
 
 ```js
 if (/<video/i.test(tag)) {
 	const attrNames = tag
-		.replace(/"[^"]*"/g, '""') // blank out attribute values
+		.replace(/"[^"]*"/g, '""') // blank out double-quoted values
+		.replace(/'[^']*'/g, "''") // blank out single-quoted values
 		.replace(/^<\w+/, "")
 		.replace(/\/?>$/, "")
 		.split(/\s+/)
@@ -1507,6 +1510,11 @@ if (/<video/i.test(tag)) {
 	if (!attrNames.includes("playsinline")) errors.push(`playsinline required — ${where}`);
 }
 ```
+
+Bypass check (must both FAIL the guard once it runs against a mutated
+dist): `<video controls preload="none" poster="x.jpg" data-playsinline="false">`
+and `<video controls preload="none" poster="x.jpg" aria-label='foo playsinline bar'>`
+each tokenize without a bare `playsinline` attribute name.
 
 - [ ] **Step 2: Add the download-CTA visibility block to `scripts/check-a11y.mjs`**
 
