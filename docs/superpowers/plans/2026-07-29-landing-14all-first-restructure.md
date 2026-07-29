@@ -297,7 +297,7 @@ const REAL_FRAME_POSTERS = [
 	{
 		out: "public/ai-14all/hero-tour-poster.jpg",
 		source: "public/ai-14all/hero-tour.mp4",
-		frameAt: "0.5", // inside the 2.5s establishing hold
+		frameAt: "1.5", // settled establishing hold (0.567–2.5s; earlier frames catch a transient blank center pane)
 		width: 1600,
 		height: 844,
 		maxBytes: 150_000,
