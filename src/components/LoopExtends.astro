@@ -1,0 +1,137 @@
+---
+import type { Flagship } from "~/lib/flagships";
+
+interface Props {
+	xavier: Flagship;
+	samantha: Flagship;
+}
+const { xavier, samantha } = Astro.props;
+const xhp = xavier.data.homepage;
+const shp = samantha.data.homepage;
+---
+
+<section id="ecosystem" class="sect container">
+	<span id="products" class="legacy-anchor" aria-hidden="true"></span>
+	<p class="label">the loop extends</p>
+	<h2 class="title">14all is the desk. the loop follows you off it.</h2>
+	<div class="duo">
+		<article class="room xavier">
+			<slot name="xavier-visual" />
+			<div class="head">
+				<h3>{xavier.data.name}</h3>
+				<span class="chip soon">{xhp.availability}</span>
+			</div>
+			<p class="pitch">{xhp.headline}</p>
+			<p class="body">{xhp.summary}</p>
+			<p class="act">
+				<a class="btn ghost" href={xhp.desktopCta.href}>{xhp.desktopCta.label}</a>
+			</p>
+		</article>
+		<article class="room samantha">
+			<slot name="samantha-visual" />
+			<div class="head">
+				<h3>{samantha.data.name}</h3>
+				<span class="chip early">{shp.availability}</span>
+			</div>
+			<p class="pitch">{shp.headline}</p>
+			<p class="body">{shp.summary}</p>
+			<p class="act">
+				<a class="btn ghost" href={shp.desktopCta.href}>{shp.desktopCta.label}</a>
+			</p>
+		</article>
+	</div>
+</section>
+
+<style>
+	.sect {
+		border-top: 1px solid var(--border);
+		margin-top: var(--s-12);
+		padding-top: var(--s-8);
+		padding-bottom: var(--s-4);
+	}
+	.legacy-anchor {
+		display: block;
+		height: 0;
+	}
+	.label {
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
+		color: var(--fg-muted);
+	}
+	.title {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: clamp(24px, 3.4vw, 34px);
+		line-height: 1.15;
+		margin-top: var(--s-3);
+		text-wrap: balance;
+	}
+	.duo {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--s-6);
+		margin-top: var(--s-8);
+	}
+	.room {
+		border-radius: var(--radius);
+		padding: var(--s-6);
+	}
+	.room.xavier {
+		background: rgba(var(--tint-xavier), 0.05);
+		border: 1px solid rgba(var(--tint-xavier), 0.2);
+	}
+	.room.samantha {
+		background: rgba(var(--tint-samantha), 0.05);
+		border: 1px solid rgba(var(--tint-samantha), 0.2);
+	}
+	.head {
+		display: flex;
+		align-items: center;
+		gap: var(--s-3);
+	}
+	.chip {
+		font-size: var(--fs-xs);
+		border-radius: var(--radius);
+		padding: 1px 8px;
+	}
+	.chip.soon {
+		color: var(--status-waiting);
+		border: 1px solid var(--status-waiting);
+	}
+	.chip.early {
+		color: var(--status-ready);
+		border: 1px solid var(--status-ready);
+	}
+	.pitch {
+		margin-top: var(--s-3);
+		color: var(--fg);
+	}
+	.body {
+		margin-top: var(--s-2);
+		color: var(--fg-dim);
+		font-size: var(--fs-sm);
+	}
+	.act {
+		margin-top: var(--s-4);
+	}
+	.btn {
+		display: inline-block;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: var(--s-3) var(--s-4);
+		font-size: var(--fs-sm);
+		font-weight: 600;
+	}
+	.btn.ghost {
+		color: var(--fg);
+	}
+	.btn.ghost:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+	@media (max-width: 899px) {
+		.duo {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

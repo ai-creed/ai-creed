@@ -1,0 +1,57 @@
+<section id="features" class="sect container">
+	<p class="label">and while they work</p>
+	<div class="feats">
+		<div class="feat">
+			<h3>browse and verify without leaving</h3>
+			<span>file view, diff review, and jump-to-symbol built in.</span>
+		</div>
+		<div class="feat">
+			<h3>compose the ecosystem</h3>
+			<span>ai-cortex remembers your codebase, ai-whisper runs autonomous workflows.</span>
+		</div>
+		<div class="feat">
+			<h3>track what agents cost</h3>
+			<span>estimated per-session token and spend telemetry.</span>
+		</div>
+	</div>
+</section>
+
+<style>
+	.sect {
+		border-top: 1px solid var(--border);
+		margin-top: var(--s-12);
+		padding-top: var(--s-8);
+		padding-bottom: var(--s-4);
+	}
+	.label {
+		font-size: var(--fs-xs);
+		letter-spacing: 0.08em;
+		color: var(--fg-muted);
+	}
+	.feats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--s-6);
+		margin-top: var(--s-8);
+	}
+	.feat {
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: var(--s-4);
+		background: var(--bg-raised);
+	}
+	.feat h3 {
+		font-size: var(--fs-base);
+	}
+	.feat span {
+		display: block;
+		margin-top: var(--s-2);
+		color: var(--fg-dim);
+		font-size: var(--fs-sm);
+	}
+	@media (max-width: 899px) {
+		.feats {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
