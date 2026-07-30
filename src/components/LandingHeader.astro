@@ -4,7 +4,11 @@ import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 
 <header class="lh">
 	<div class="container row">
-		<a class="brand" href="/"><span class="dot">●</span><span>ai-creed</span></a>
+		<a class="brand" href="/"
+			><img class="mark" src="/brand-mark.png" alt="" width="20" height="20" /><span
+				>ai-creed</span
+			></a
+		>
 		<nav class="nav-desktop" aria-label="primary">
 			<a href="#how">how it works</a>
 			<a href="#ecosystem">the ecosystem</a>
@@ -49,8 +53,8 @@ import Ai14allReleaseLink from "~/components/Ai14allReleaseLink.astro";
 	.brand:hover {
 		color: var(--accent);
 	}
-	.dot {
-		color: var(--accent);
+	.mark {
+		display: block;
 	}
 	.nav-desktop {
 		display: inline-flex;
