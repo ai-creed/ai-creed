@@ -419,7 +419,9 @@ untouched and remain in force.
    exception). Every table entry is additionally **computed-visibility
    checked** in chromium: the matched element must be rendered visible
    (not `display:none` / `visibility:hidden` / zero-sized /
-   `.visually-hidden`) at both 1440×900 and 390×844, except entries the
+   `.visually-hidden` / zero **effective** opacity — including `opacity: 0`
+   on any ancestor, since opacity composites rather than inherits) at both
+   1440×900 and 390×844, except entries the
    table marks as a responsive variant, which must be visible at the
    viewport the table names and hidden at the other. A hidden h1 with no
    visible h1 therefore fails. Separately, the hero `<video>`'s

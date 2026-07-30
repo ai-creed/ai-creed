@@ -1275,6 +1275,12 @@ for (const viewport of VIEWPORTS) {
 			const isVisible = (el) => {
 				const cs = getComputedStyle(el);
 				if (cs.display === "none" || cs.visibility === "hidden") return false;
+				// effective opacity: opacity composites rather than inheriting, so a
+				// transparent ANCESTOR hides the element without appearing in its own
+				// computed style — walk the chain and reject zero anywhere.
+				for (let node = el; node; node = node.parentElement) {
+					if (Number(getComputedStyle(node).opacity) === 0) return false;
+				}
 				const r = el.getBoundingClientRect();
 				return r.width > 1 && r.height > 1;
 			};
@@ -1527,6 +1533,12 @@ if (route === "/") {
 		const isVisible = (el) => {
 			const cs = getComputedStyle(el);
 			if (cs.display === "none" || cs.visibility === "hidden") return false;
+			// effective opacity: opacity composites rather than inheriting, so a
+			// transparent ANCESTOR hides the element without appearing in its own
+			// computed style — walk the chain and reject zero anywhere.
+			for (let node = el; node; node = node.parentElement) {
+				if (Number(getComputedStyle(node).opacity) === 0) return false;
+			}
 			const r = el.getBoundingClientRect();
 			return r.width > 1 && r.height > 1;
 		};
