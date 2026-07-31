@@ -1,0 +1,128 @@
+{
+	"tourOffset": 2,
+	"tourDuration": 21,
+	"masterDuration": 25.222428955078126,
+	"beats": [
+		{
+			"beat": "establish",
+			"settleTour": 0,
+			"holdSec": 2.5,
+			"rect": null
+		},
+		{
+			"beat": "sidebar",
+			"settleTour": 4.5,
+			"holdSec": 3,
+			"rect": {
+				"x": 32,
+				"y": 32,
+				"w": 480,
+				"h": 520
+			}
+		},
+		{
+			"beat": "fleet",
+			"settleTour": 9.5,
+			"holdSec": 3,
+			"rect": {
+				"x": 548,
+				"y": 212,
+				"w": 2296,
+				"h": 1172.390625
+			}
+		},
+		{
+			"beat": "review",
+			"settleTour": 14.5,
+			"holdSec": 3,
+			"rect": {
+				"x": 1202,
+				"y": 173.609375,
+				"w": 1596,
+				"h": 700
+			}
+		},
+		{
+			"beat": "pullback",
+			"settleTour": 19.5,
+			"holdSec": 1.5,
+			"rect": null
+		}
+	],
+	"events": [
+		{
+			"id": "ezio-waiting",
+			"kind": "mcp-status",
+			"cueTargetTour": 5,
+			"executedMaster": 7.002540771484375
+		},
+		{
+			"id": "commit-line",
+			"kind": "marker",
+			"cueTargetTour": 10,
+			"executedMaster": 12.005540771484375
+		},
+		{
+			"id": "review-comment",
+			"kind": "review-inject",
+			"cueTargetTour": 15,
+			"executedMaster": 17.001540771484375
+		},
+		{
+			"id": "codex-ready",
+			"kind": "mcp-status",
+			"cueTargetTour": 20,
+			"executedMaster": 22.002540771484377
+		},
+		{
+			"id": "switch-codex",
+			"kind": "ui-action",
+			"cueTargetTour": 12.6,
+			"executedMaster": 14.603540771484376
+		},
+		{
+			"id": "open-review",
+			"kind": "ui-action",
+			"cueTargetTour": 13,
+			"executedMaster": 15.002540771484375
+		},
+		{
+			"id": "codex-burst",
+			"kind": "ui-action",
+			"cueTargetTour": 18.5,
+			"executedMaster": 20.500540771484374
+		},
+		{
+			"id": "poster",
+			"kind": "ui-action",
+			"cueTargetTour": 21,
+			"executedMaster": 23.001540771484375
+		}
+	],
+	"motionWindows": [
+		{
+			"startMaster": 2,
+			"endMaster": 4.5
+		},
+		{
+			"startMaster": 6,
+			"endMaster": 8
+		},
+		{
+			"startMaster": 11,
+			"endMaster": 13
+		},
+		{
+			"startMaster": 21,
+			"endMaster": 23
+		}
+	],
+	"provenance": {
+		"appVersion": "1.9.0",
+		"gitSha": "d8caa494e5711b19852c954fb8b22b1ad3640448",
+		"recordedAt": "2026-07-31T03:21:23.526Z",
+		"clockOffsetMs": 26.43310546875,
+		"clockResidualMs": 6.7998046875,
+		"posterCapturedMaster": 23.001540771484375
+	}
+}
