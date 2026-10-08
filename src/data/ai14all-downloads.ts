@@ -6,7 +6,7 @@ export interface DownloadAsset {
 	url: string;
 }
 
-const VERSION = "1.9.0";
+const VERSION = "1.9.1";
 const BASE = `https://github.com/ai-creed/ai-14all/releases/download/v${VERSION}`;
 
 export const AI14ALL_DOWNLOADS = {
