@@ -108,7 +108,7 @@ The example shows _what the agent does with the feature_. That's what converts.
 5. **Iterate on density.** Drafts always read too long the first time. Re-read with the question: _would I scroll past this on a phone?_ If yes, trim.
 6. **Commit, conventional style.** `feat(<project>): ...` for content additions, `chore(<project>): bump to vX.Y.Z` for version-only updates. Body lists what changed.
 
-## Anti-patterns (caught during the v0.5.1 ai-cortex refresh)
+## Anti-patterns
 
 - **Too many features.** Schema enforces ≤6. Don't fight it — pick the six that sell hardest.
 - **Implementation jargon in section bodies.** "sqlite (FTS5) + vector sidecar" is correct but kills momentum. Save for the README.
